@@ -1,0 +1,6 @@
+{
+  "env": { "browser": true, "es6": true, "greasemonkey": true },
+  "extends": ["eslint:recommended", "prettier"],
+  "parserOptions": { "ecmaVersion": 2020 },
+  "root": true
+}
