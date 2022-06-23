@@ -13,7 +13,8 @@ installing them from one of the following common sources of user scripts:
 
 ## Scripts
 
-- (none yet)
+- [Feedly](https://feedly.com/)
+  - [Unread count in title](scripts/feedly-unread-count-in-title.md)
 
 ## Libraries
 
