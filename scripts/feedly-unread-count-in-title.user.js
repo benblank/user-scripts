@@ -37,7 +37,7 @@ function formatCurrentValue(value, unitLabels) {
   return `${value}${unitLabels}`;
 }
 
-function getFeedId(feedList, countAll = false) {
+function getFeedId(feedList, countAll) {
   // If we're counting everything, return the ID for the "All" category.
   if (countAll) {
     return `user/${getSessionValue('feedlyId')}/category/global.all`;
@@ -74,7 +74,7 @@ function getSessionValue(key) {
   return JSON.parse(localStorage.getItem('feedly.session'))[key];
 }
 
-function getUnreadCountFromFeedList(feedList, countAll = false) {
+function getUnreadCountFromFeedList(feedList, countAll) {
   if (countAll) {
     return feedList.querySelector(`${ROW_SELECTOR}[title=${ALL_TITLE}] ${ROW_COUNT_SELECTOR}`)?.textContent;
   }
@@ -128,7 +128,7 @@ function observeSelector(root, selector) {
   });
 }
 
-function setTitleCount(unreadCount, countAll = false) {
+function setTitleCount(unreadCount, countAll) {
   const existingTitleBase = document.title.replace(TITLE_UNREAD_COUNT_PATTERN, '');
 
   if (!unreadCount) {
