@@ -1,10 +1,11 @@
 // ==UserScript==
-// @name        Feedly unread count in title
+// @name        Feedly: Unread count in title
 // @namespace   https://userscripts.five35.com/
 // @version     1.0
 // @author      Ben "535" Blank
 // @description Adds the number of unread items to the Feedly window title.
 // @license     BSD-3-Clause
+// @copyright   2022 Ben Blank
 // @match       https://*.feedly.com/*
 // @require     https://openuserjs.org/src/libs/sizzle/GM_config.js
 // @grant       GM_getValue
@@ -83,13 +84,7 @@ function getUnreadCountFromFeedList(feedList, countAll) {
 }
 
 function getUnreadCountFromResponse(response, categoryId) {
-  for (const item of response.unreadcounts) {
-    if (item.id === categoryId) {
-      return item.count;
-    }
-  }
-
-  // Implicitly return undefined if no matching category could be found.
+  return response.unreadcounts.find(({ id }) => id === categoryId)?.count;
 }
 
 function observeSelector(root, selector) {
@@ -158,15 +153,14 @@ observeSelector(document.getElementById(ROOT_ID), FEED_LIST_SELECTOR).then((feed
     // saved value"), plus the change listeners below, cause the title to update
     // in real time while the config is open.
     const countAll = GM_config.get('countAll', GM_config.isOpen);
+    const prepend = GM_config.get('prepend', GM_config.isOpen);
 
     setTitleCount(
       response
         ? getUnreadCountFromResponse(response, getFeedId(feedList, countAll))
         : getUnreadCountFromFeedList(feedList, countAll),
       countAll,
-
-      // See also the comment on the "countAll" variable above.
-      GM_config.get('prepend', GM_config.isOpen),
+      prepend,
     );
 
     observer.observe(feedList, { characterData: true, subtree: true });
@@ -187,7 +181,6 @@ observeSelector(document.getElementById(ROOT_ID), FEED_LIST_SELECTOR).then((feed
         .then((response) => response.json())
         .then(onChange);
     }, GM_config.get('pollFrequency') * MS_PER_MINUTE);
-    1;
   }
 
   GM_config.init({
@@ -283,6 +276,7 @@ observeSelector(document.getElementById(ROOT_ID), FEED_LIST_SELECTOR).then((feed
 
       open: () => {
         GM_config.fields.countAll.node.addEventListener('change', () => onChange());
+        // No listener for pollFrequency, as its value doesn't affect display.
         GM_config.fields.prepend.node.addEventListener('change', () => onChange());
       },
 
