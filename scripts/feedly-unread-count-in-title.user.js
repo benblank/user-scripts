@@ -123,17 +123,19 @@ function observeSelector(root, selector) {
   });
 }
 
-function setTitleCount(unreadCount, countAll, prepend) {
+function setTitleCount(unreadCount, { countAll, hideWhenEmpty, prepend }) {
   const existingTitleBase = document.title.replace(TITLE_UNREAD_COUNT_PATTERN, '');
 
-  if (!unreadCount) {
+  if (!unreadCount && hideWhenEmpty) {
     // Count was zero, missing, or empty, all of which indicate no unread items.
     document.title = existingTitleBase;
   } else {
+    const displayCount = !unreadCount && !hideWhenEmpty ? 0 : unreadCount;
+
     if (prepend) {
-      document.title = `(${countAll ? '*' : ''}${unreadCount}) ${existingTitleBase}`;
+      document.title = `(${countAll ? '*' : ''}${displayCount}) ${existingTitleBase}`;
     } else {
-      document.title = `${existingTitleBase} (${countAll ? '*' : ''}${unreadCount})`;
+      document.title = `${existingTitleBase} (${countAll ? '*' : ''}${displayCount})`;
     }
   }
 }
@@ -153,14 +155,18 @@ observeSelector(document.getElementById(ROOT_ID), FEED_LIST_SELECTOR).then((feed
     // saved value"), plus the change listeners below, cause the title to update
     // in real time while the config is open.
     const countAll = GM_config.get('countAll', GM_config.isOpen);
+    const hideWhenEmpty = GM_config.get('hideWhenEmpty', GM_config.isOpen);
     const prepend = GM_config.get('prepend', GM_config.isOpen);
 
     setTitleCount(
       response
         ? getUnreadCountFromResponse(response, getFeedId(feedList, countAll))
         : getUnreadCountFromFeedList(feedList, countAll),
-      countAll,
-      prepend,
+      {
+        countAll,
+        hideWhenEmpty,
+        prepend,
+      },
     );
 
     observer.observe(feedList, { characterData: true, subtree: true });
@@ -191,6 +197,12 @@ observeSelector(document.getElementById(ROOT_ID), FEED_LIST_SELECTOR).then((feed
       countAll: {
         label: 'Show count of all unread items, not just items in the selected folder',
         type: 'checkbox',
+      },
+
+      hideWhenEmpty: {
+        label: 'Hide the count when there are no unread items',
+        type: 'checkbox',
+        default: true,
       },
 
       pollFrequency: {
@@ -278,6 +290,7 @@ observeSelector(document.getElementById(ROOT_ID), FEED_LIST_SELECTOR).then((feed
         GM_config.fields.countAll.node.addEventListener('change', () => onChange());
         // No listener for pollFrequency, as its value doesn't affect display.
         GM_config.fields.prepend.node.addEventListener('change', () => onChange());
+        GM_config.fields.hideWhenEmpty.node.addEventListener('change', () => onChange());
       },
 
       save: () => onChange(),
