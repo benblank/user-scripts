@@ -16,3 +16,8 @@
   default). This setting allows you to change how often that check occurs. The
   minimum is every one minute, to avoid spamming the servers. The maximum is
   every sixty minutes, which coincides with Feedly's own update schedule.
+
+- **Show unread count at the beginning of the title instead of the end**
+
+  When checked, the unread count will be prepended to the beginning of the
+  title. When unchecked (the default), it will be appended to the end.

@@ -21,7 +21,7 @@ const MS_PER_MINUTE = 60 * 1000;
 const ROOT_ID = 'root';
 const ROW_COUNT_SELECTOR = '.LeftnavListRow__count';
 const ROW_SELECTOR = '.LeftnavListRow';
-const TITLE_UNREAD_COUNT_PATTERN = / \(\*?\d+\)$/;
+const TITLE_UNREAD_COUNT_PATTERN = /^\(\*?\d+\) | \(\*?\d+\)$/;
 
 GM_registerMenuCommand('Configure unread count in title', () => GM_config.open());
 
@@ -128,14 +128,18 @@ function observeSelector(root, selector) {
   });
 }
 
-function setTitleCount(unreadCount, countAll) {
+function setTitleCount(unreadCount, countAll, prepend) {
   const existingTitleBase = document.title.replace(TITLE_UNREAD_COUNT_PATTERN, '');
 
   if (!unreadCount) {
     // Count was zero, missing, or empty, all of which indicate no unread items.
     document.title = existingTitleBase;
   } else {
-    document.title = `${existingTitleBase} (${countAll ? '*' : ''}${unreadCount})`;
+    if (prepend) {
+      document.title = `(${countAll ? '*' : ''}${unreadCount}) ${existingTitleBase}`;
+    } else {
+      document.title = `${existingTitleBase} (${countAll ? '*' : ''}${unreadCount})`;
+    }
   }
 }
 
@@ -151,7 +155,7 @@ observeSelector(document.getElementById(ROOT_ID), FEED_LIST_SELECTOR).then((feed
     observer.disconnect();
 
     // Passing isOpen as the second parameter ("get current value instead of
-    // saved value"), plus the change listener below, cause the title to update
+    // saved value"), plus the change listeners below, cause the title to update
     // in real time while the config is open.
     const countAll = GM_config.get('countAll', GM_config.isOpen);
 
@@ -160,6 +164,9 @@ observeSelector(document.getElementById(ROOT_ID), FEED_LIST_SELECTOR).then((feed
         ? getUnreadCountFromResponse(response, getFeedId(feedList, countAll))
         : getUnreadCountFromFeedList(feedList, countAll),
       countAll,
+
+      // See also the comment on the "countAll" variable above.
+      GM_config.get('prepend', GM_config.isOpen),
     );
 
     observer.observe(feedList, { characterData: true, subtree: true });
@@ -200,6 +207,11 @@ observeSelector(document.getElementById(ROOT_ID), FEED_LIST_SELECTOR).then((feed
         min: 1,
         max: 60,
         unitLabels: [' min', ' mins'],
+      },
+
+      prepend: {
+        label: 'Show unread count at the beginning of the title instead of the end',
+        type: 'checkbox',
       },
     },
 
@@ -268,7 +280,12 @@ observeSelector(document.getElementById(ROOT_ID), FEED_LIST_SELECTOR).then((feed
     // provided.
     events: {
       close: () => onChange(),
-      open: () => GM_config.fields.countAll.node.addEventListener('change', () => onChange()),
+
+      open: () => {
+        GM_config.fields.countAll.node.addEventListener('change', () => onChange());
+        GM_config.fields.prepend.node.addEventListener('change', () => onChange());
+      },
+
       save: () => onChange(),
     },
   });
