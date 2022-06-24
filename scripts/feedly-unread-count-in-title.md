@@ -9,6 +9,12 @@
   When unchecked (the default), the count added to the title includes only the
   unread items in the currently-selected folder.
 
+- **Hide the count when there are no unread items**
+
+  When checked (the default), the unread count will disappear entirely when
+  there are no unread items. When unchecked, the unread count will still appear
+  (as a zero) when there are no unread items.
+
 - **Check for unread items every…**
 
   Normally, Feedly only updates the uread counts while the tab is visible. This
