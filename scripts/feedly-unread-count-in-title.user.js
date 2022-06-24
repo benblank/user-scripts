@@ -37,26 +37,37 @@ function formatCurrentValue(value, unitLabels) {
   return `${value}${unitLabels}`;
 }
 
-function getCategoryId(feedList, countAll = false) {
+function getFeedId(feedList, countAll = false) {
+  // If we're counting everything, return the ID for the "All" category.
   if (countAll) {
     return `user/${getSessionValue('feedlyId')}/category/global.all`;
   }
 
-  let currentNode = feedList.querySelector(CURRENT_ROW_SELECTOR);
+  const selected = feedList.querySelector(CURRENT_ROW_SELECTOR);
 
-  // The 'All' category has no ID attached to the DOM. Instead, it is detected
-  // through the title of the selected element.
-  if (currentNode.title === ALL_TITLE) {
+  // The "All" category, which is identified by its title, doesn't store its ID
+  // in the DOM.
+  if (selected.title === ALL_TITLE) {
     return `user/${getSessionValue('feedlyId')}/category/global.all`;
   }
 
-  // The element which receives the 'selected' class doesn't have the category
-  // ID attached to it, so we look up the tree for the ancestor which does.
-  while (currentNode && !currentNode.id) {
-    currentNode = currentNode.parentNode;
+  // Other categories' IDs can be most easily obtained from their great-
+  // grandparents' "id" attributes.
+  const ggParentId = selected.parentNode.parentNode.parentNode.getAttribute('id');
+
+  if (ggParentId) {
+    return ggParentId;
   }
 
-  return currentNode?.id;
+  // Individual feeds have their feed ID stored in the selected element's
+  // parent's draggable data.
+  const draggableId = selected.parentNode.dataset.rbdDraggableId;
+
+  if (draggableId) {
+    return JSON.parse(draggableId).feedId;
+  }
+
+  // Implicitly return undefined if no category ID could be found.
 }
 
 function getSessionValue(key) {
@@ -146,7 +157,7 @@ observeSelector(document.getElementById(ROOT_ID), FEED_LIST_SELECTOR).then((feed
 
     setTitleCount(
       response
-        ? getUnreadCountFromResponse(response, getCategoryId(feedList, countAll))
+        ? getUnreadCountFromResponse(response, getFeedId(feedList, countAll))
         : getUnreadCountFromFeedList(feedList, countAll),
       countAll,
     );
