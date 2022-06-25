@@ -26,7 +26,19 @@ const TITLE_UNREAD_COUNT_PATTERN = /^\(\*?\d+\) | \(\*?\d+\)$/;
 
 GM_registerMenuCommand('Configure unread count in title', () => GM_config.open());
 
-function formatCurrentValue(value, unitLabels) {
+/** Format a value as a string, using the supplied unit names.
+ *
+ * If the unit labels are missing or empty, the value is converted to a string
+ * and returned as-is. If the unit labels are a single string, that string is
+ * appended to the formatted value. If the unit labels are an array of strings,
+ * the first label will be appended if the value is exactly one. Otherwise, the
+ * second label will be used.
+ *
+ * @param {any} value The value to format.
+ * @param {string|[string, string]?} unitLabels The unit label(s) to use.
+ * @returns {string} The formatted value.
+ */
+function formatValueWithUnits(value, unitLabels) {
   if (!unitLabels) {
     return String(value);
   }
@@ -38,6 +50,17 @@ function formatCurrentValue(value, unitLabels) {
   return `${value}${unitLabels}`;
 }
 
+/** Get the ID of the feed or category which should be counted.
+ *
+ * If `countAll` is true, the ID for the "All" category will be returned.
+ * Otherwise, the DOM will be scanned for the currently-selected category or
+ * feed and its ID will be returned.
+ *
+ * @param {HTMLElement} feedList The root node of the feed list.
+ * @param {boolean} countAll Whether all items should be counted (instead of
+ * just the selected feed/category).
+ * @returns {string} The relevant feed ID.
+ */
 function getFeedId(feedList, countAll) {
   // If we're counting everything, return the ID for the "All" category.
   if (countAll) {
@@ -71,10 +94,29 @@ function getFeedId(feedList, countAll) {
   // Implicitly return undefined if no category ID could be found.
 }
 
+/** Get a value from Feedly's session.
+ *
+ * Feedly stores information about the current session as a JSON blob in local
+ * storage. This function retrieves the requested property from that session.
+ *
+ * @param {string} key The key of the property to return.
+ * @returns {unknown} The value of the requested property, if it exists.
+ */
 function getSessionValue(key) {
   return JSON.parse(localStorage.getItem('feedly.session'))[key];
 }
 
+/** Get the current number of unread items by scanning the DOM.
+ *
+ * If `countAll` is true, the count for the "All" category will be returned.
+ * Otherwise, the count of the currently-selected category or feed will be
+ * returned.
+ *
+ * @param {HTMLElement} feedList The root node of the feed list.
+ * @param {boolean} countAll Whether all items should be counted (instead of
+ * just the selected feed/category).
+ * @returns {string?} The number of unread items.
+ */
 function getUnreadCountFromFeedList(feedList, countAll) {
   if (countAll) {
     return feedList.querySelector(`${ROW_SELECTOR}[title=${ALL_TITLE}] ${ROW_COUNT_SELECTOR}`)?.textContent;
@@ -83,10 +125,29 @@ function getUnreadCountFromFeedList(feedList, countAll) {
   return feedList.querySelector(`${CURRENT_ROW_SELECTOR} ${ROW_COUNT_SELECTOR}`)?.textContent;
 }
 
-function getUnreadCountFromResponse(response, categoryId) {
-  return response.unreadcounts.find(({ id }) => id === categoryId)?.count;
+/** Get the current number of unread items from a response from Feedly's API.
+ *
+ * @param {object} response A response from Feedly's "counts" endpoint.
+ * @param {string} feedId The feed ID for which to get the unread count.
+ * @returns {number?} The unread count for the requested feed or category.
+ */
+function getUnreadCountFromResponse(response, feedId) {
+  return response.unreadcounts.find(({ id }) => id === feedId)?.count;
 }
 
+/** Obtain an element which matches a selector when it appears in the DOM.
+ *
+ * Try to use as specific a root as possible; the smaller the observation space,
+ * the faster the search.
+ *
+ * Only the "id" and "class" attributes are observed (to improve speed), so
+ * selector should not look for arbitrary attributes.
+ *
+ * @param {HTMLElement} root The root element from which to match the selector.
+ * @param {string} selector A CSS-style selector.
+ * @returns {Promise<HTMLElement>} The first element to appear which matches the
+ * selector.
+ */
 function observeSelector(root, selector) {
   return new Promise((resolve) => {
     const observer = new MutationObserver((mutations) => {
@@ -123,16 +184,26 @@ function observeSelector(root, selector) {
   });
 }
 
-function setTitleCount(unreadCount, { countAll, hideWhenEmpty, prepend }) {
+/** Add (or remove) the unread count in the page title.
+ *
+ * @param {number|string?} unreadCount The number of unread items to display.
+ * @param {boolean} options.countAll Whether the count represents all unread
+ * items, or just those in the selected category or feed.
+ * @param {boolean} options.hideWhenZero Whether to hide the unread count
+ * entirely when it is (or represents) zero.
+ * @param {boolean} options.prepend Whether to add the count to the beginning of
+ * the title instead of the end.
+ */
+function setTitleCount(unreadCount, { countAll, hideWhenZero, prepend }) {
   const existingTitleBase = document.title.replace(TITLE_UNREAD_COUNT_PATTERN, '');
 
   // Count was zero, missing, or empty, all of which indicate no unread items.
   const unreadCountIsZero = !unreadCount || unreadCount === '0';
 
-  if (unreadCountIsZero && hideWhenEmpty) {
+  if (unreadCountIsZero && hideWhenZero) {
     document.title = existingTitleBase;
   } else {
-    const displayCount = unreadCountIsZero && !hideWhenEmpty ? 0 : unreadCount;
+    const displayCount = unreadCountIsZero && !hideWhenZero ? 0 : unreadCount;
 
     if (prepend) {
       document.title = `(${countAll ? '*' : ''}${displayCount}) ${existingTitleBase}`;
@@ -149,6 +220,15 @@ observeSelector(document.getElementById(ROOT_ID), FEED_LIST_SELECTOR).then((feed
   const observer = new MutationObserver(() => onChange());
   let timeout = null;
 
+  /** Handle a potential change to the unread count.
+   *
+   * Triggered by either DOM observation or an API response. If the `response`
+   * parameter is present, it is treated as a response from Feedly's counts
+   * endpoint. Otherwise, a value is extracted from the DOM.
+   *
+   * @param {object?} response The API response which triggered this change, if
+   * any.
+   */
   function onChange(response = null) {
     // Make sure our setting of the title doesn't get observed!
     observer.disconnect();
@@ -157,7 +237,7 @@ observeSelector(document.getElementById(ROOT_ID), FEED_LIST_SELECTOR).then((feed
     // saved value"), plus the change listeners below, cause the title to update
     // in real time while the config is open.
     const countAll = GM_config.get('countAll', GM_config.isOpen);
-    const hideWhenEmpty = GM_config.get('hideWhenEmpty', GM_config.isOpen);
+    const hideWhenZero = GM_config.get('hideWhenZero', GM_config.isOpen);
     const prepend = GM_config.get('prepend', GM_config.isOpen);
 
     setTitleCount(
@@ -166,7 +246,7 @@ observeSelector(document.getElementById(ROOT_ID), FEED_LIST_SELECTOR).then((feed
         : getUnreadCountFromFeedList(feedList, countAll),
       {
         countAll,
-        hideWhenEmpty,
+        hideWhenZero,
         prepend,
       },
     );
@@ -176,6 +256,10 @@ observeSelector(document.getElementById(ROOT_ID), FEED_LIST_SELECTOR).then((feed
     scheduleRequest();
   }
 
+  /** Schedule a request to Feedly's API.
+   *
+   * Any existing scheduled request is cleared first.
+   */
   function scheduleRequest() {
     window.clearTimeout(timeout);
 
@@ -201,7 +285,7 @@ observeSelector(document.getElementById(ROOT_ID), FEED_LIST_SELECTOR).then((feed
         type: 'checkbox',
       },
 
-      hideWhenEmpty: {
+      hideWhenZero: {
         label: 'Hide the count when there are no unread items',
         type: 'checkbox',
         default: true,
@@ -257,13 +341,13 @@ observeSelector(document.getElementById(ROOT_ID), FEED_LIST_SELECTOR).then((feed
 
           const currentValue = this.create('span', {
             className: `${this.configId}_${this.id}_current_value`,
-            innerHTML: formatCurrentValue(this.value, this.settings.unitLabels),
+            innerHTML: formatValueWithUnits(this.value, this.settings.unitLabels),
           });
 
           input.addEventListener(
             'input',
             () => {
-              currentValue.textContent = formatCurrentValue(input.valueAsNumber, this.settings.unitLabels);
+              currentValue.textContent = formatValueWithUnits(input.valueAsNumber, this.settings.unitLabels);
             },
             { passive: true },
           );
@@ -292,7 +376,7 @@ observeSelector(document.getElementById(ROOT_ID), FEED_LIST_SELECTOR).then((feed
         GM_config.fields.countAll.node.addEventListener('change', () => onChange());
         // No listener for pollFrequency, as its value doesn't affect display.
         GM_config.fields.prepend.node.addEventListener('change', () => onChange());
-        GM_config.fields.hideWhenEmpty.node.addEventListener('change', () => onChange());
+        GM_config.fields.hideWhenZero.node.addEventListener('change', () => onChange());
       },
 
       save: () => onChange(),
