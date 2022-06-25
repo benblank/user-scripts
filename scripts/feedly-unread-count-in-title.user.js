@@ -197,7 +197,7 @@ observeSelector(document.getElementById(ROOT_ID), FEED_LIST_SELECTOR).then((feed
 
     fields: {
       countAll: {
-        label: 'Show count of all unread items, not just items in the selected folder',
+        label: 'Show count of all unread items, not just items in the selected category',
         type: 'checkbox',
       },
 
