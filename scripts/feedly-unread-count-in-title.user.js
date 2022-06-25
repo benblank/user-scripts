@@ -11,6 +11,7 @@
 // @grant       GM_getValue
 // @grant       GM_registerMenuCommand
 // @grant       GM_setValue
+// @inject-into content
 // ==/UserScript==
 
 /* globals GM_config */
@@ -264,10 +265,7 @@ observeSelector(document.getElementById(ROOT_ID), FEED_LIST_SELECTOR).then((feed
     window.clearTimeout(timeout);
 
     timeout = window.setTimeout(() => {
-      const type = unsafeWindow.feedlyApplicationType;
-      const version = unsafeWindow.feedlyApplicationVersion;
-
-      fetch(`/v3/markers/counts?ck=${Date.now()}&ct=${type}&cv=${version}`, {
+      fetch(`/v3/markers/counts?autorefresh=true`, {
         headers: { authorization: `Bearer ${getSessionValue('feedlyToken')}` },
       })
         .then((response) => response.json())
