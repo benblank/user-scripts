@@ -126,11 +126,13 @@ function observeSelector(root, selector) {
 function setTitleCount(unreadCount, { countAll, hideWhenEmpty, prepend }) {
   const existingTitleBase = document.title.replace(TITLE_UNREAD_COUNT_PATTERN, '');
 
-  if (!unreadCount && hideWhenEmpty) {
-    // Count was zero, missing, or empty, all of which indicate no unread items.
+  // Count was zero, missing, or empty, all of which indicate no unread items.
+  const unreadCountIsZero = !unreadCount || unreadCount === '0';
+
+  if (unreadCountIsZero && hideWhenEmpty) {
     document.title = existingTitleBase;
   } else {
-    const displayCount = !unreadCount && !hideWhenEmpty ? 0 : unreadCount;
+    const displayCount = unreadCountIsZero && !hideWhenEmpty ? 0 : unreadCount;
 
     if (prepend) {
       document.title = `(${countAll ? '*' : ''}${displayCount}) ${existingTitleBase}`;
