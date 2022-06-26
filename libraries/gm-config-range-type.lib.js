@@ -4,7 +4,7 @@
 
 // ==UserLibrary==
 // @name        Range type for GM_config
-// @version     1.0
+// @version     1.0.1
 // @author      Ben "535" Blank
 // @description Provides a range (slider) custom type for use with GM_config.
 // @homepageURL https://benblank.github.io/user-scripts/libraries/gm-config-range-type.html

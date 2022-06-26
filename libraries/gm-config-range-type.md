@@ -18,6 +18,12 @@ There are two steps to using this type: adding a `@require` line to your
 script's metadata block, and specifying it as a custom type when initializing
 GM_config.
 
+Note the version number in the library's URL on the `@require` line. Including
+it allows you to get a newer version of the library (by changing the version
+number to the latest) even if the user script extension doesn't support updating
+libraries. (The version number is ignore by GitHub Pages and exists solely for
+your script's benefit.)
+
 Example:
 
 ```javascript
@@ -25,7 +31,7 @@ Example:
 // @name      My Cool Script
 // @namespace https://example.com/
 // @match     https://*.example.com/*
-// @require   https://benblank.github.io/user-scripts/libraries/gm-config-range-type.lib.js
+// @require   https://benblank.github.io/user-scripts/libraries/gm-config-range-type.lib.js?v=1.0.1
 // @grant     GM_getValue
 // @grant     GM_registerMenuCommand
 // @grant     GM_setValue
