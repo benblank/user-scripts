@@ -98,7 +98,7 @@
         id: `${this.configId}_field_${this.id}`,
         type: 'range',
         value: this.value,
-        ...pick(this.setings, ['min', 'max', 'step']),
+        ...pick(this.settings, ['min', 'max', 'step']),
       });
 
       const currentValue = this.create('span', {
