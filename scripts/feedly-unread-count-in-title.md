@@ -1,9 +1,11 @@
+## Feedly: Unread count in title
+
 Feedly doesn't provide a way for you to know how many unread items you have in
 your feed when you aren't actually looking at it (e.g. Feedly is minimized or in
 a different tab). This script places the number of unread items in the page
 title, so that you can see it even when Feedly isn't visible.
 
-## Settings
+### Settings
 
 - **Show count of all unread items, not just items in the selected category**
 
@@ -33,7 +35,7 @@ title, so that you can see it even when Feedly isn't visible.
   When checked, the unread count will be prepended to the beginning of the
   title. When unchecked (the default), it will be appended to the end.
 
-## Troubleshooting
+### Troubleshooting
 
 - _The number of unread items isn't appearing in the title!_
 
