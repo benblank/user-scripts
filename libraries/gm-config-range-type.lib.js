@@ -26,10 +26,11 @@
    * Otherwise, the second label will be used.
    *
    * @param {any} value The value to format.
-   * @param {string|[string, string]?} unitLabels The unit label(s) to use.
+   * @param {string|[string, string]?} settings.unitLabels The unit label(s) to
+   * use.
    * @returns {string} The formatted value.
    */
-  function formatValueWithUnits(value, unitLabels) {
+  function defaultFormatter(value, { unitLabels }) {
     if (!unitLabels) {
       return String(value);
     }
@@ -91,6 +92,8 @@
         }),
       );
 
+      const formatter = this.settings.formatter ?? defaultFormatter;
+
       const input = this.create('input', {
         id: `${this.configId}_field_${this.id}`,
         type: 'range',
@@ -100,13 +103,13 @@
 
       const currentValue = this.create('span', {
         className: `${this.configId}_${this.id}_current_value`,
-        innerHTML: formatValueWithUnits(this.value, this.settings.unitLabels),
+        innerHTML: formatter(this.value, this.settings),
       });
 
       input.addEventListener(
         'input',
         () => {
-          currentValue.textContent = formatValueWithUnits(input.valueAsNumber, this.settings.unitLabels);
+          currentValue.textContent = formatter(input.valueAsNumber, this.settings);
         },
         { passive: true },
       );
