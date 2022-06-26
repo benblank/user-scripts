@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        Feedly: Unread count in title
 // @namespace   https://benblank.github.io/user-scripts/
-// @version     1.0
+// @version     1.0.1
 // @author      Ben "535" Blank
 // @description Adds the number of unread items to the Feedly window title.
 // @homepageURL https://benblank.github.io/user-scripts/scripts/feedly-unread-count-in-title.html
@@ -11,13 +11,14 @@
 // @copyright   2022 Ben Blank
 // @match       https://*.feedly.com/*
 // @require     https://openuserjs.org/src/libs/sizzle/GM_config.js
+// @require     https://benblank.github.io/user-scripts/libraries/gm-config-range-type.lib.js
 // @grant       GM_getValue
 // @grant       GM_registerMenuCommand
 // @grant       GM_setValue
 // @inject-into content
 // ==/UserScript==
 
-/* globals GM_config */
+/* globals GM_config, GM_config_range_type */
 
 const ALL_TITLE = 'All';
 const CURRENT_ROW_SELECTOR = '.LeftnavListRow--selected';
@@ -29,30 +30,6 @@ const ROW_SELECTOR = '.LeftnavListRow';
 const TITLE_UNREAD_COUNT_PATTERN = /^\(\*?\d+\) | \(\*?\d+\)$/;
 
 GM_registerMenuCommand('Configure unread count in title', () => GM_config.open());
-
-/** Format a value as a string, using the supplied unit names.
- *
- * If the unit labels are missing or empty, the value is converted to a string
- * and returned as-is. If the unit labels are a single string, that string is
- * appended to the formatted value. If the unit labels are an array of strings,
- * the first label will be appended if the value is exactly one. Otherwise, the
- * second label will be used.
- *
- * @param {any} value The value to format.
- * @param {string|[string, string]?} unitLabels The unit label(s) to use.
- * @returns {string} The formatted value.
- */
-function formatValueWithUnits(value, unitLabels) {
-  if (!unitLabels) {
-    return String(value);
-  }
-
-  if (Array.isArray(unitLabels)) {
-    return `${value}${unitLabels[value === 1 ? 0 : 1]}`;
-  }
-
-  return `${value}${unitLabels}`;
-}
 
 /** Get the ID of the feed or category which should be counted.
  *
@@ -308,63 +285,7 @@ observeSelector(document.getElementById(ROOT_ID), FEED_LIST_SELECTOR).then((feed
     },
 
     types: {
-      range: {
-        reset() {
-          if (this.wrapper) {
-            this.wrapper.querySelector(`#${this.configId}_field_${this.id}`).value = this.settings.default;
-          }
-        },
-
-        toNode() {
-          const container = this.create('div', {
-            className: 'config_var',
-            id: `${this.configId}_${this.id}_var`,
-            title: this.title || '',
-          });
-
-          container.appendChild(
-            this.create('label', {
-              className: 'field_label',
-              for: `${this.configId}_field_${this.id}`,
-              id: `${this.configId}_${this.id}_field_label`,
-              innerHTML: this.settings.label,
-            }),
-          );
-
-          const input = this.create('input', {
-            id: `${this.configId}_field_${this.id}`,
-            max: this.settings.max,
-            min: this.settings.min,
-            step: this.settings.step,
-            type: 'range',
-            value: this.value,
-          });
-
-          const currentValue = this.create('span', {
-            className: `${this.configId}_${this.id}_current_value`,
-            innerHTML: formatValueWithUnits(this.value, this.settings.unitLabels),
-          });
-
-          input.addEventListener(
-            'input',
-            () => {
-              currentValue.textContent = formatValueWithUnits(input.valueAsNumber, this.settings.unitLabels);
-            },
-            { passive: true },
-          );
-
-          container.appendChild(input);
-          container.appendChild(currentValue);
-
-          return container;
-        },
-
-        toValue() {
-          if (this.wrapper) {
-            return this.wrapper.querySelector(`#${this.configId}_field_${this.id}`).valueAsNumber;
-          }
-        },
-      },
+      range: GM_config_range_type,
     },
 
     // These listeners all wrap onChange in an arrow function to prevent
