@@ -41,6 +41,33 @@
     return `${value}${unitLabels}`;
   }
 
+  /** Pick specific properties, if present, from an object.
+   *
+   * If a specified property is absent from the source object, it will also be
+   * absent in the result object.
+   *
+   * Properties are created using simple assignment. If the source property has
+   * a non-primitive value (e.g. an array), the result object's property will
+   * point to the exact same value, not a copy of it.
+   *
+   * @param {{[key: string]: unknown}} source The object from which to pick
+   * properties.
+   * @param {Array<string>} keys The keys of the properties to pick.
+   * @returns {{[key: string]: unknown}} A new object containing only the
+   * selected properties.
+   */
+  function pick(source, keys) {
+    const result = {};
+
+    keys.forEach((key) => {
+      if (key in source) {
+        result[key] = source[key];
+      }
+    });
+
+    return result;
+  }
+
   window.GM_config_range_type = {
     reset() {
       if (this.wrapper) {
@@ -66,11 +93,9 @@
 
       const input = this.create('input', {
         id: `${this.configId}_field_${this.id}`,
-        max: this.settings.max,
-        min: this.settings.min,
-        step: this.settings.step,
         type: 'range',
         value: this.value,
+        ...pick(this.setings, ['min', 'max', 'step']),
       });
 
       const currentValue = this.create('span', {
