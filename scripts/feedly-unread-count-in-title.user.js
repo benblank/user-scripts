@@ -1,9 +1,12 @@
 // ==UserScript==
 // @name        Feedly: Unread count in title
-// @namespace   https://userscripts.five35.com/
+// @namespace   https://benblank.github.io/user-scripts/
 // @version     1.0
 // @author      Ben "535" Blank
 // @description Adds the number of unread items to the Feedly window title.
+// @homepageURL https://benblank.github.io/user-scripts/scripts/feedly-unread-count-in-title.md
+// @supportURL  https://github.com/benblank/user-scripts/issues
+// @icon        https://benblank.github.io/user-scripts/scripts/feedly-unread-count-in-title.icon.png
 // @license     BSD-3-Clause
 // @copyright   2022 Ben Blank
 // @match       https://*.feedly.com/*
