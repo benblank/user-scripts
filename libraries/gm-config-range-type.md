@@ -10,7 +10,7 @@ look something like the following:
 The range type is exposed as a global named `GM_config_range_type`. It supports
 all standard field settings, plus a few of its own (see the
 [Settings](#settings) section below) and includes a text representation of the
-slider's current value (which can optionally be labeled).
+slider's current value (which can optionally be labeled or formatted).
 
 ### Usage
 
@@ -99,6 +99,46 @@ all types:
     is handy for standard units. For example, if your field represents a number
     of seconds, you can set it to `[' second', ' seconds']` (note the space at
     the beginning of each string).
+
+- `formatter`
+
+  A more flexible alternative to `unitLabels`. If provided, this function will
+  be called with the field's current value and settings when adding the current
+  value text. Whatever it returns will be displayed as the current value. This
+  could be used, for example, to store a value between 0 and 1, but display it
+  as a percentage.
+
+  Note that the `unitLabels` setting is a feature of the default formatter and
+  will be ignored if you provide a custom formatter (unless you use it
+  yourself).
+
+  Example:
+
+  ```js
+  GM_config.init({
+    id: 'myCoolScript',
+    title: "My cool script's settings",
+
+    fields: {
+      volume: {
+        label: 'Volume',
+        type: 'range',
+        default: 0.8,
+        min: 0,
+        max: 1,
+        step: 0.01,
+
+        formatter(value, settings) {
+          return `${Math.round(value * 100)}%`;
+        },
+      },
+    },
+
+    types: {
+      range: GM_config_range_type,
+    },
+  });
+  ```
 
 [gm-config]: https://github.com/sizzlemctwizzle/GM_config
 [mdn-range]: https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/range
