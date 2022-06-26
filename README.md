@@ -18,4 +18,4 @@ extension which manages your user scripts to update them automatically.
 
 ## Libraries
 
-- (none yet)
+- [Range type for GM_config](libraries/gm-config-range-type.md)

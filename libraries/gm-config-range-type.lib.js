@@ -9,6 +9,7 @@
 // @description Provides a range (slider) custom type for use with GM_config.
 // @homepageURL https://benblank.github.io/user-scripts/libraries/gm-config-range-type.html
 // @supportURL  https://github.com/benblank/user-scripts/issues
+// @icon        https://benblank.github.io/user-scripts/libraries/gm-config-range-type.icon.png
 // @license     BSD-3-Clause
 // @copyright   2022 Ben Blank
 // ==/UserLibrary==
