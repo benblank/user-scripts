@@ -4,8 +4,6 @@ particular script, open its documentation from the list below.
 ## Installation
 
 You can install these user scripts from any of the three places listed below.
-Note, however, that installing directly from GitHub Pages likely won't allow the
-extension which manages your user scripts to update them automatically.
 
 - [GitHub Pages](https://benblank.github.io/user-scripts/)
 - [Greasy Fork](https://greasyfork.org/en/users/928949-benblank)
