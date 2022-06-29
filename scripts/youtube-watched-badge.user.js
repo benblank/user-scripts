@@ -40,6 +40,55 @@ const BADGE_CSS = `
 // This is YouTube's built-in watched badge, and may be present on some views.
 const YOUTUBE_BADGE_SELECTOR = 'ytd-thumbnail-overlay-playback-status-renderer';
 
+const INTERPRET_AS_ATTRIBUTES = new Set([
+  'accesskey',
+  'class',
+  'for',
+  'href',
+  'id',
+  'name',
+  'src',
+  'style',
+  'type',
+  'value',
+]);
+
+function createElement(tagName, attributes = {}, children = []) {
+  const element = document.createElement(tagName);
+
+  for (const [key, value] of Object.entries(attributes)) {
+    if (INTERPRET_AS_ATTRIBUTES.has(key)) {
+      // If the key is recognized to be primarily an attribute, set it as such.
+      element.setAttribute(key, value);
+    } else {
+      // Otherwise, just set it as a property.
+      element[key] = value;
+    }
+  }
+
+  function appendChild(child) {
+    if (typeof child === 'string') {
+      element.appendChild(document.createTextNode(child));
+    } else if (child instanceof Node) {
+      element.appendChild(child);
+    } else {
+      console.error(`Couldn't interpret '${child}' as a child type while creating element '${tagName}'.`);
+    }
+  }
+
+  if (Array.isArray(children)) {
+    // If chilren is an array, append them all.
+    for (const child of children) {
+      appendChild(child);
+    }
+  } else {
+    // Otherwise, just append it directly.
+    appendChild(children);
+  }
+
+  return element;
+}
+
 GM_registerMenuCommand('Configure watched badge', () => GM_config.open());
 
 const options = {
@@ -55,9 +104,9 @@ const options = {
 
 function debounce(fn) {
   return () => {
-  clearTimeout(fn.timeout);
+    clearTimeout(fn.timeout);
 
-  fn.timeout = setTimeout(fn, options.debounce);
+    fn.timeout = setTimeout(fn, options.debounce);
   };
 }
 
@@ -77,12 +126,7 @@ function setBadge(thumbnail) {
     }
 
     if (!badge) {
-      const newBadge = document.createElement('span');
-
-      newBadge.className = 'ytwb-badge';
-      newBadge.appendChild(document.createTextNode('WATCHED'));
-
-      thumbnail.querySelector('#overlays')?.appendChild(newBadge);
+      thumbnail.querySelector('#overlays')?.appendChild(createElement('span', { class: 'ytwb-badge' }, 'WATCHED'));
     }
   } else {
     if (img) {
@@ -95,11 +139,7 @@ function setBadge(thumbnail) {
   }
 }
 
-const css = document.createElement('style');
-
-css.appendChild(document.createTextNode(BADGE_CSS));
-
-document.head.appendChild(css);
+document.head.appendChild(createElement('style', undefined, BADGE_CSS));
 
 const setBadges = debounce(() => Array.from(document.querySelectorAll('ytd-thumbnail') ?? []).forEach(setBadge));
 
