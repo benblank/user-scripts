@@ -54,9 +54,11 @@ const options = {
 };
 
 function debounce(fn) {
+  return () => {
   clearTimeout(fn.timeout);
 
   fn.timeout = setTimeout(fn, options.debounce);
+  };
 }
 
 function setBadge(thumbnail) {
