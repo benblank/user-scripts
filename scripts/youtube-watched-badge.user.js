@@ -1,13 +1,17 @@
 // ==UserScript==
 // @name        YouTube: Watched badge
-// @namespace   https://userscripts.five35.com/
+// @namespace   https://benblank.github.io/user-scripts/
 // @version     1.0
 // @author      Ben "535" Blank
 // @description Adds or improves "watched" badges on watched videos' thumbnails.
+// @homepageURL https://benblank.github.io/user-scripts/scripts/youtube-watched-badge.html
+// @supportURL  https://github.com/benblank/user-scripts/issues
+// @icon        https://benblank.github.io/user-scripts/scripts/youtube-watched-badge.icon.png
 // @license     BSD-3-Clause
 // @copyright   2022 Ben Blank
 // @match       https://*.youtube.com/*
 // @require     https://openuserjs.org/src/libs/sizzle/GM_config.js
+// @require     https://benblank.github.io/user-scripts/libraries/gm-config-range-type.lib.js?v=1.0.1
 // @grant       GM_getValue
 // @grant       GM_registerMenuCommand
 // @grant       GM_setValue
@@ -41,7 +45,12 @@ GM_registerMenuCommand('Configure watched badge', () => GM_config.open());
 const options = {
   debounce: 50,
   opacity: 0.5,
-  threshold: 0.8,
+
+  // The video's play percentage is extracted from the thumbnail's progress bar,
+  // where it is stored as a CSS width. Becuase the width is specified using the
+  // percentage unit, the threshold here uses the same, to avoid needing to
+  // convert the value.
+  threshold: 80,
 };
 
 function debounce(fn) {
@@ -55,7 +64,7 @@ function setBadge(thumbnail) {
 
   // If the progress bar is absent, parseFloat will return NaN, which always
   // compares false.
-  const shouldBeBadged = parseFloat(progress?.style.width) >= options.threshold * 100;
+  const shouldBeBadged = parseFloat(progress?.style.width) >= options.threshold;
 
   const badge = thumbnail.querySelector(YOUTUBE_BADGE_SELECTOR) ?? thumbnail.querySelector('.ytwb-badge');
   const img = thumbnail.querySelector('#img');
@@ -75,7 +84,7 @@ function setBadge(thumbnail) {
     }
   } else {
     if (img) {
-      img.style.opacity = '';
+      img.style.removeProperty('opacity');
     }
 
     if (badge) {
@@ -90,9 +99,9 @@ css.appendChild(document.createTextNode(BADGE_CSS));
 
 document.head.appendChild(css);
 
-const setBadges = debounce(() => {
-  Array.from(document.querySelectorAll('ytd-thumbnail')).forEach(setBadge);
-});
+const setBadges = debounce(() => Array.from(document.querySelectorAll('ytd-thumbnail') ?? []).forEach(setBadge));
 
+// These events are overly broad, but YouTube no longer produces a narrower,
+// more appropriate event. (That I know of.)
 document.addEventListener('dom-change', setBadges);
 document.addEventListener('yt-action', setBadges);
