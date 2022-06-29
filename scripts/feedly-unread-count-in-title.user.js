@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        Feedly: Unread count in title
 // @namespace   https://benblank.github.io/user-scripts/
-// @version     1.0.2
+// @version     1.0.3
 // @author      Ben "535" Blank
 // @description Adds the number of unread items to the Feedly window title.
 // @homepageURL https://benblank.github.io/user-scripts/scripts/feedly-unread-count-in-title.html
@@ -52,13 +52,13 @@ function getFeedId(feedList, countAll) {
 
   // The "All" category, which is identified by its title, doesn't store its ID
   // in the DOM.
-  if (selected.title === ALL_TITLE) {
+  if (selected?.title === ALL_TITLE) {
     return `user/${getSessionValue('feedlyId')}/category/global.all`;
   }
 
   // Other categories' IDs can be most easily obtained from their great-
   // grandparents' "id" attributes.
-  const ggParentId = selected.parentNode.parentNode.parentNode.getAttribute('id');
+  const ggParentId = selected?.parentNode?.parentNode?.parentNode?.getAttribute('id');
 
   if (ggParentId) {
     return ggParentId;
@@ -66,10 +66,14 @@ function getFeedId(feedList, countAll) {
 
   // Individual feeds have their feed ID stored in the selected element's
   // parent's draggable data.
-  const draggableId = selected.parentNode.dataset.rbdDraggableId;
+  const draggableId = selected?.parentNode?.dataset.rbdDraggableId;
 
   if (draggableId) {
-    return JSON.parse(draggableId).feedId;
+    try {
+      return JSON.parse(draggableId).feedId;
+    } catch {
+      console.error(`Could not parse draggableId '${draggableId} as JSON.`);
+    }
   }
 
   // Implicitly return undefined if no category ID could be found.
@@ -84,7 +88,15 @@ function getFeedId(feedList, countAll) {
  * @returns {unknown} The value of the requested property, if it exists.
  */
 function getSessionValue(key) {
-  return JSON.parse(localStorage.getItem('feedly.session'))[key];
+  const session = localStorage.getItem('feedly.session');
+
+  try {
+    return JSON.parse(session)[key];
+  } catch {
+    console.error(`Could not parse session '${session} as JSON.`);
+  }
+
+  // Implicitly return undefined if the session was missing or invalid.
 }
 
 /** Get the current number of unread items by scanning the DOM.
@@ -113,7 +125,7 @@ function getUnreadCountFromFeedList(feedList, countAll) {
  * @returns {number?} The unread count for the requested feed or category.
  */
 function getUnreadCountFromResponse(response, feedId) {
-  return response.unreadcounts.find(({ id }) => id === feedId)?.count;
+  return response.unreadcounts?.find(({ id }) => id === feedId)?.count;
 }
 
 /** Obtain an element which matches a selector when it appears in the DOM.
@@ -249,7 +261,8 @@ observeSelector(document.getElementById(ROOT_ID), FEED_LIST_SELECTOR).then((feed
         headers: { authorization: `Bearer ${getSessionValue('feedlyToken')}` },
       })
         .then((response) => response.json())
-        .then(onChange);
+        .then(onChange)
+        .catch(scheduleRequest);
     }, GM_config.get('pollFrequency') * MS_PER_MINUTE);
   }
 
