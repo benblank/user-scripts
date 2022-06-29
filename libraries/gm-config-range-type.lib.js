@@ -4,7 +4,7 @@
 
 // ==UserLibrary==
 // @name        Range type for GM_config
-// @version     1.0.1
+// @version     1.0.2
 // @author      Ben "535" Blank
 // @description Provides a range (slider) custom type for use with GM_config.
 // @homepageURL https://benblank.github.io/user-scripts/libraries/gm-config-range-type.html
@@ -97,8 +97,8 @@
       const input = this.create('input', {
         id: `${this.configId}_field_${this.id}`,
         type: 'range',
-        value: this.value,
         ...pick(this.settings, ['min', 'max', 'step']),
+        value: this.value,
       });
 
       const currentValue = this.create('span', {
