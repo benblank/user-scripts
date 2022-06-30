@@ -11,14 +11,14 @@
 // @copyright   2022 Ben Blank
 // @match       https://*.youtube.com/*
 // @require     https://openuserjs.org/src/libs/sizzle/GM_config.js
-// @require     https://benblank.github.io/user-scripts/libraries/gm-config-range-type.lib.js?v=1.0.1
+// @require     https://benblank.github.io/user-scripts/libraries/gm-config-range-type.lib.js?v=1.0.2
 // @grant       GM_getValue
 // @grant       GM_registerMenuCommand
 // @grant       GM_setValue
 // @inject-into content
 // ==/UserScript==
 
-/* globals GM_config */
+/* globals GM_config, GM_config_range_type */
 
 const BADGE_CSS = `
   .ytwb-badge {
@@ -36,6 +36,13 @@ const BADGE_CSS = `
     position: absolute;
   }
 `;
+
+// How long to wait before handling an event. New events arriving within this
+// window cancel the previous timeout and start a new one, meaning that a
+// debounced function only fires this many milliseconds after the last event in
+// a batch. Lower timeouts make the function more responsive, but may
+// unnecessarily increase load, especially if DOM manipulations are performed.
+const DEBOUNCE_TIMEOUT = 50;
 
 // This is YouTube's built-in watched badge, and may be present on some views.
 const YOUTUBE_BADGE_SELECTOR = 'ytd-thumbnail-overlay-playback-status-renderer';
@@ -91,22 +98,11 @@ function createElement(tagName, attributes = {}, children = []) {
 
 GM_registerMenuCommand('Configure watched badge', () => GM_config.open());
 
-const options = {
-  debounce: 50,
-  opacity: 0.5,
-
-  // The video's play percentage is extracted from the thumbnail's progress bar,
-  // where it is stored as a CSS width. Becuase the width is specified using the
-  // percentage unit, the threshold here uses the same, to avoid needing to
-  // convert the value.
-  threshold: 80,
-};
-
 function debounce(fn) {
   return () => {
     clearTimeout(fn.timeout);
 
-    fn.timeout = setTimeout(fn, options.debounce);
+    fn.timeout = setTimeout(fn, DEBOUNCE_TIMEOUT);
   };
 }
 
@@ -115,14 +111,14 @@ function setBadge(thumbnail) {
 
   // If the progress bar is absent, parseFloat will return NaN, which always
   // compares false.
-  const shouldBeBadged = parseFloat(progress?.style.width) >= options.threshold;
+  const shouldBeBadged = parseFloat(progress?.style.width) >= GM_config.get('minimumPercent');
 
   const badge = thumbnail.querySelector(YOUTUBE_BADGE_SELECTOR) ?? thumbnail.querySelector('.ytwb-badge');
   const img = thumbnail.querySelector('#img');
 
   if (shouldBeBadged) {
     if (img) {
-      img.style.opacity = options.opacity;
+      img.style.opacity = 0.5;
     }
 
     if (!badge) {
@@ -147,3 +143,31 @@ const setBadges = debounce(() => Array.from(document.querySelectorAll('ytd-thumb
 // more appropriate event. (That I know of.)
 document.addEventListener('dom-change', setBadges);
 document.addEventListener('yt-action', setBadges);
+
+GM_config.init({
+  id: 'watchedBadge',
+  title: "'Watched badge' settings",
+
+  fields: {
+    // The video's play percentage is extracted from the thumbnail's progress
+    // bar, where it is stored as a CSS width. Becuase the width is specified
+    // using the percentage unit, this field uses the same, to avoid needing to
+    // convert the value.
+    minimumPercent: {
+      label: 'Minimum percent watched to add badge',
+      type: 'range',
+      default: 80,
+      min: 0,
+      max: 100,
+      unitLabels: '%',
+    },
+  },
+
+  types: {
+    range: GM_config_range_type,
+  },
+
+  events: {
+    close: setBadges,
+  },
+});
