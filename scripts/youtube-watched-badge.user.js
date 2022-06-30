@@ -44,8 +44,19 @@ const BADGE_CSS = `
 // unnecessarily increase load, especially if DOM manipulations are performed.
 const DEBOUNCE_TIMEOUT = 50;
 
+const SECONDS_PER_HOUR = 60 * 60;
+const SECONDS_PER_MINUTE = 60;
+
 // This is YouTube's built-in watched badge, and may be present on some views.
 const YOUTUBE_BADGE_SELECTOR = 'ytd-thumbnail-overlay-playback-status-renderer';
+
+const YOUTUBE_TIME_SELECTOR = 'ytd-thumbnail-overlay-time-status-renderer';
+
+const VALUE_BOTH = 'Both';
+const VALUE_PERCENT = 'Percentage viewed';
+const VALUE_TIME = 'Time Remaining';
+const VALUES_PERCENT = new Set([VALUE_BOTH, VALUE_PERCENT]);
+const VALUES_TIME = new Set([VALUE_BOTH, VALUE_TIME]);
 
 const INTERPRET_AS_ATTRIBUTES = new Set([
   'accesskey',
@@ -106,12 +117,45 @@ function debounce(fn) {
   };
 }
 
+function parseTime(text) {
+  if (!text) {
+    return NaN;
+  }
+
+  const segments = text.split(':');
+
+  if (segments.length > 2) {
+    // YouTube doesn't format times with more than three segments.
+    return (
+      parseInt(segments[0], 10) * SECONDS_PER_HOUR +
+      parseInt(segments[1], 10) * SECONDS_PER_MINUTE +
+      parseInt(segments[2], 10)
+    );
+  }
+
+  return parseInt(segments[0], 10) * SECONDS_PER_MINUTE + parseInt(segments[1]);
+}
+
 function setBadge(thumbnail) {
   const progress = thumbnail.querySelector('#progress');
+  const time = thumbnail.querySelector(YOUTUBE_TIME_SELECTOR);
+  const basis = GM_config.get('basis');
+  const percentWatchedLimit = GM_config.get('percentWatched');
+  const timeRemainingLimit = GM_config.get('timeRemaining');
 
   // If the progress bar is absent, parseFloat will return NaN, which always
   // compares false.
-  const shouldBeBadged = parseFloat(progress?.style.width) >= GM_config.get('minimumPercent');
+  const percentWatched = parseFloat(progress?.style.width);
+
+  // Similarly parseTime will return NaN.
+  const videoTime = parseTime(time?.textContent);
+
+  const isShortVideo = videoTime <= timeRemainingLimit;
+  const timeRemaining = videoTime - (videoTime * percentWatched) / 100;
+
+  const shouldBeBadged =
+    (VALUES_PERCENT.has(basis) && percentWatched >= percentWatchedLimit) ||
+    (VALUES_TIME.has(basis) && !isShortVideo && timeRemaining <= timeRemainingLimit);
 
   const badge = thumbnail.querySelector(YOUTUBE_BADGE_SELECTOR) ?? thumbnail.querySelector('.ytwb-badge');
   const img = thumbnail.querySelector('#img');
@@ -149,17 +193,47 @@ GM_config.init({
   title: "'Watched badge' settings",
 
   fields: {
+    basis: {
+      label: 'Mark videos as watched based on…',
+      type: 'select',
+      options: [VALUE_PERCENT, VALUE_TIME, VALUE_BOTH],
+      default: 'Both',
+    },
+
     // The video's play percentage is extracted from the thumbnail's progress
     // bar, where it is stored as a CSS width. Becuase the width is specified
     // using the percentage unit, this field uses the same, to avoid needing to
     // convert the value.
-    minimumPercent: {
-      label: 'Minimum percent watched to add badge',
+    percentWatched: {
+      label: 'Add a badge if the percent watched is greater than…',
       type: 'range',
       default: 80,
       min: 0,
       max: 100,
       unitLabels: '%',
+    },
+
+    timeRemaining: {
+      label: 'Add a badge if the time remaining is less than…',
+      type: 'range',
+      default: 90,
+      min: 0,
+      max: SECONDS_PER_HOUR,
+
+      formatter(value) {
+        let remaining = value;
+        const segments = [];
+
+        if (remaining >= SECONDS_PER_HOUR) {
+          segments.push(Math.trunc(value / SECONDS_PER_HOUR));
+          remaining = remaining % SECONDS_PER_HOUR;
+        }
+
+        segments.push(Math.trunc(remaining / SECONDS_PER_MINUTE));
+        segments.push(remaining % SECONDS_PER_MINUTE);
+
+        return segments.map((segment, index) => (index !== 0 && segment < 10 ? `0${segment}` : segment)).join(':');
+      },
     },
   },
 
