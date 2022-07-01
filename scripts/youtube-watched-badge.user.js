@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        YouTube: Watched badge
 // @namespace   https://benblank.github.io/user-scripts/
-// @version     1.0
+// @version     1.0.1
 // @author      Ben "535" Blank
 // @description Adds or improves "watched" badges on watched videos' thumbnails.
 // @homepageURL https://benblank.github.io/user-scripts/scripts/youtube-watched-badge.html
