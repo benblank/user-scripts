@@ -4,7 +4,7 @@
 
 // ==UserLibrary==
 // @name        Range type for GM_config
-// @version     1.0.3
+// @version     1.0.4
 // @author      Ben "535" Blank
 // @description Provides a range (slider) custom type for use with GM_config.
 // @homepageURL https://benblank.github.io/user-scripts/libraries/gm-config-range-type.html
@@ -71,12 +71,9 @@
 
   window.GM_config_range_type = {
     reset() {
-      if (this.wrapper) {
-        this.wrapper.querySelector(`#${this.configId}_field_${this.id}`).value = this.settings.default;
-
-        this.wrapper.querySelector(`.${this.configId}_${this.id}_current_value`).textContent = (
-          this.settings.formatter ?? defaultFormatter
-        )(this.settings.default, this.settings);
+      if (this.node) {
+        this.node.value = this.default;
+        this.updateCurrentValue();
       }
     },
 
@@ -96,38 +93,40 @@
         }),
       );
 
-      const formatter = this.settings.formatter ?? defaultFormatter;
-
-      const input = this.create('input', {
-        id: `${this.configId}_field_${this.id}`,
-        type: 'range',
-        ...pick(this.settings, ['min', 'max', 'step']),
-        value: this.value,
-      });
-
-      const currentValue = this.create('span', {
-        className: `${this.configId}_${this.id}_current_value`,
-        innerHTML: formatter(this.value, this.settings),
-      });
-
-      input.addEventListener(
-        'input',
-        () => {
-          currentValue.textContent = formatter(input.valueAsNumber, this.settings);
-        },
-        { passive: true },
+      container.appendChild(
+        (this.node = this.create('input', {
+          id: `${this.configId}_field_${this.id}`,
+          type: 'range',
+          ...pick(this.settings, ['min', 'max', 'step']),
+          value: this.value,
+        })),
       );
 
-      container.appendChild(input);
-      container.appendChild(currentValue);
+      const formatter = this.settings.formatter ?? defaultFormatter;
+
+      container.appendChild(
+        (this.currentValue = this.create('span', {
+          className: `${this.configId}_${this.id}_current_value`,
+          innerHTML: formatter(this.value, this.settings),
+        })),
+      );
+
+      // GM_config only adds the three properties it expects from a custom type
+      // to the fields created from it, so this has to be created when the nodes
+      // are.
+      this.updateCurrentValue = () => {
+        if (this.currentValue) {
+          this.currentValue.textContent = formatter(this.node.valueAsNumber, this.settings);
+        }
+      };
+
+      this.node.addEventListener('input', this.updateCurrentValue.bind(this), { passive: true });
 
       return container;
     },
 
     toValue() {
-      if (this.wrapper) {
-        return this.wrapper.querySelector(`#${this.configId}_field_${this.id}`).valueAsNumber;
-      }
+      return this.node?.valueAsNumber;
     },
   };
 })();
