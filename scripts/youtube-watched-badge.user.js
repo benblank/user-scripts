@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        YouTube: Watched badge
 // @namespace   https://benblank.github.io/user-scripts/
-// @version     1.0.1
+// @version     1.1.0
 // @author      Ben "535" Blank
 // @description Adds or improves "watched" badges on watched videos' thumbnails.
 // @homepageURL https://benblank.github.io/user-scripts/scripts/youtube-watched-badge.html
@@ -159,14 +159,29 @@ function setBadge(thumbnail) {
 
   const badge = thumbnail.querySelector(YOUTUBE_BADGE_SELECTOR) ?? thumbnail.querySelector('.ytwb-badge');
   const img = thumbnail.querySelector('#img');
+  const hidingPlaybackStatus = thumbnail.hasAttribute('hide-playback-status');
 
-  if (shouldBeBadged) {
+  if (shouldBeBadged && (!hidingPlaybackStatus || GM_config.get('unhide'))) {
     if (img) {
       img.style.opacity = 0.5;
     }
 
-    if (!badge) {
-      thumbnail.querySelector('#overlays')?.appendChild(createElement('span', { class: 'ytwb-badge' }, 'WATCHED'));
+    const badgeText = hidingPlaybackStatus ? 'W' : 'WATCHED';
+
+    if (badge) {
+      if (hidingPlaybackStatus) {
+        // An existing badge only needs tweaked if the thumbnail is trying to
+        // hide it.
+
+        const formattedString = badge.querySelector('yt-formatted-string');
+
+        if (formattedString) {
+          formattedString.textContent = badgeText;
+          badge.style.display = 'revert';
+        }
+      }
+    } else {
+      thumbnail.querySelector('#overlays')?.appendChild(createElement('span', { class: 'ytwb-badge' }, badgeText));
     }
   } else {
     if (img) {
@@ -234,6 +249,12 @@ GM_config.init({
 
         return segments.map((segment, index) => (index !== 0 && segment < 10 ? `0${segment}` : segment)).join(':');
       },
+    },
+
+    unhide: {
+      label: 'Add a badge even to thumbnails which would normally hide it',
+      type: 'checkbox',
+      default: true,
     },
   },
 

@@ -36,6 +36,15 @@ This script brings them back, with customization for when they appear.
   the time remaining you have set, a badge will never be added based on time
   remaining.
 
+- **Add a badge even to thumbnails which would normally hide it**
+
+  In some views (such as playlists), the thumbnails are small enough that
+  YouTube hides the watched badge, even if it would otherwise be shown. When
+  checked (the default), badges will be shown on those thumbnails anyway (though
+  the text will be abbreviated to just "W" due to the small size). When
+  unchecked, watched videos will still be faded, but the badge will not be
+  visible.
+
 ### Troubleshooting
 
 - _The badge doesn't show up on the video I've watched most recently._
