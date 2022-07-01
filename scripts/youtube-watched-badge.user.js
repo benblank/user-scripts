@@ -11,7 +11,7 @@
 // @copyright   2022 Ben Blank
 // @match       https://*.youtube.com/*
 // @require     https://openuserjs.org/src/libs/sizzle/GM_config.js
-// @require     https://benblank.github.io/user-scripts/libraries/gm-config-range-type.lib.js?v=1.0.2
+// @require     https://benblank.github.io/user-scripts/libraries/gm-config-range-type.lib.js?v=1.0.3
 // @grant       GM_getValue
 // @grant       GM_registerMenuCommand
 // @grant       GM_setValue

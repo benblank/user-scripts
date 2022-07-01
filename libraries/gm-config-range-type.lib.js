@@ -4,7 +4,7 @@
 
 // ==UserLibrary==
 // @name        Range type for GM_config
-// @version     1.0.2
+// @version     1.0.3
 // @author      Ben "535" Blank
 // @description Provides a range (slider) custom type for use with GM_config.
 // @homepageURL https://benblank.github.io/user-scripts/libraries/gm-config-range-type.html
@@ -73,6 +73,10 @@
     reset() {
       if (this.wrapper) {
         this.wrapper.querySelector(`#${this.configId}_field_${this.id}`).value = this.settings.default;
+
+        this.wrapper.querySelector(`.${this.configId}_${this.id}_current_value`).textContent = (
+          this.settings.formatter ?? defaultFormatter
+        )(this.settings.default, this.settings);
       }
     },
 
