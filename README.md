@@ -13,6 +13,8 @@ You can install these user scripts from any of the three places listed below.
 
 - [Feedly](https://feedly.com/)
   - [Unread count in title](scripts/feedly-unread-count-in-title.md)
+- [YouTube](https://youtube.com/)
+  - [Watched badge](scripts/youtube-watched-badge.md)
 
 ## Libraries
 

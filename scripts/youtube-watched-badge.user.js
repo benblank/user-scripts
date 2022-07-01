@@ -205,7 +205,7 @@ GM_config.init({
     // using the percentage unit, this field uses the same, to avoid needing to
     // convert the value.
     percentWatched: {
-      label: 'Add a badge if the percent watched is greater than…',
+      label: 'Add a badge if the percent watched is at least…',
       type: 'range',
       default: 80,
       min: 0,
