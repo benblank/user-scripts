@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        YouTube: Watched badge
 // @namespace   https://benblank.github.io/user-scripts/
-// @version     1.1.0
+// @version     1.1.1
 // @author      Ben "535" Blank
 // @description Adds or improves "watched" badges on watched videos' thumbnails.
 // @homepageURL https://benblank.github.io/user-scripts/scripts/youtube-watched-badge.html
@@ -11,7 +11,7 @@
 // @copyright   2022 Ben Blank
 // @match       https://*.youtube.com/*
 // @require     https://openuserjs.org/src/libs/sizzle/GM_config.js
-// @require     https://benblank.github.io/user-scripts/libraries/gm-config-range-type.lib.js?v=1.0.3
+// @require     https://benblank.github.io/user-scripts/libraries/gm-config-range-type.lib.js?v=1.0.4
 // @grant       GM_getValue
 // @grant       GM_registerMenuCommand
 // @grant       GM_setValue
