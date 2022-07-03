@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        YouTube: Watched badge
 // @namespace   https://benblank.github.io/user-scripts/
-// @version     1.1.1
+// @version     1.1.2
 // @author      Ben "535" Blank
 // @description Adds or improves "watched" badges on watched videos' thumbnails.
 // @homepageURL https://benblank.github.io/user-scripts/scripts/youtube-watched-badge.html
@@ -26,11 +26,11 @@ const BADGE_CSS = `
     border-radius: 2px;
     bottom: 0;
     color: var(--yt-spec-static-brand-white);
-    font-size: var(--ytd-badge_-_font-size);
-    font-weight: var(--ytd-badge_-_font-weight);
+    font-size: var(--yt-badge-font-size,1.2rem);
+    font-weight: var(--yt-badge-font-weight,500);
     left: 0;
-    letter-spacing: 0.5px;
-    line-height: var(--ytd-badge_-_line-height);
+    letter-spacing: var(--yt-badge-letter-spacing,0.5px);
+    line-height: var(--yt-badge-line-height-size,1.2rem);
     margin: 4px;
     padding: 3px 4px;
     position: absolute;
