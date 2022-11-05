@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        YouTube: Watched badge
 // @namespace   https://benblank.github.io/user-scripts/
-// @version     1.1.2
+// @version     1.1.3
 // @author      Ben "535" Blank
 // @description Adds or improves "watched" badges on watched videos' thumbnails.
 // @homepageURL https://benblank.github.io/user-scripts/scripts/youtube-watched-badge.html
@@ -158,7 +158,7 @@ function setBadge(thumbnail) {
     (VALUES_TIME.has(basis) && !isShortVideo && timeRemaining <= timeRemainingLimit);
 
   const badge = thumbnail.querySelector(YOUTUBE_BADGE_SELECTOR) ?? thumbnail.querySelector('.ytwb-badge');
-  const img = thumbnail.querySelector('#img');
+  const img = thumbnail.querySelector('yt-image');
   const hidingPlaybackStatus = thumbnail.hasAttribute('hide-playback-status');
 
   if (shouldBeBadged && (!hidingPlaybackStatus || GM_config.get('unhide'))) {
