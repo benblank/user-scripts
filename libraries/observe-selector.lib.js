@@ -9,7 +9,7 @@
 // @description Provides a function which resolves a promise when a node appears in the DOM.
 // @homepageURL https://benblank.github.io/user-scripts/libraries/observe-selector.html
 // @supportURL  https://github.com/benblank/user-scripts/issues
-// @-icon        https://benblank.github.io/user-scripts/libraries/observe-selector.icon.png
+// @icon        https://benblank.github.io/user-scripts/libraries/observe-selector.icon.png
 // @license     BSD-3-Clause
 // @copyright   2022 Ben Blank
 // ==/UserLibrary==
