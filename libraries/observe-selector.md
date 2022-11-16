@@ -39,4 +39,6 @@ observeSelector('.some.cool.thing', document.querySelector('#where-it-will-be'))
 );
 ```
 
+# TODO: don't call `.stop()` from callback
+
 [mutation-observer]: https://developer.mozilla.org/en-us/docs/web/api/mutationobserver
