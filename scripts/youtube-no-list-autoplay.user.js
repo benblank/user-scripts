@@ -98,26 +98,21 @@ EventTarget.prototype.removeEventListener = removeEventListenerWrapper;
  * Removes the list= and index= parameters from href= attributes which point to
  * YouTube's /watch page.
  *
- * If the node isn't an Element, doesn't have an href= attribute, or the href=
- * attribute doesn't point at the /watch page, it is not affected.
+ * If the element doesn't have an href= attribute (or the href= attribute
+ * doesn't point at the /watch page), it is not affected.
  *
- * @param {Node} node The node from which to remove the parameters, if they
+ * @param {Element} element The node from which to remove the parameters, if they
  * exist.
  */
-function removeListParameters(node) {
-  if (!(node instanceof Element) || !node.hasAttribute('href')) {
-    // If there's no href= attribute, there's nothing to do.
-    return;
-  }
-
+function removeListParameters(element) {
   try {
-    const maybeHref = node.getAttribute('href');
+    const href = element.getAttribute('href');
 
-    if (!maybeHref) {
+    if (!href) {
       return;
     }
 
-    const url = new URL(maybeHref, document.baseURI);
+    const url = new URL(href, document.baseURI);
 
     if (url.pathname === '/watch') {
       // The list= parameter controls "list mode". The index= parameter is
@@ -125,10 +120,14 @@ function removeListParameters(node) {
       url.searchParams.delete('index');
       url.searchParams.delete('list');
 
-      node.setAttribute('href', url.href);
+      element.setAttribute('href', url.href);
     }
   } catch (error) {
     // The href attribute wasn't a valid URL, which doesn't need handled.
+  }
+
+  for (const child of element.children) {
+    removeListParameters(child);
   }
 }
 
@@ -199,7 +198,7 @@ function removeEventHandlers(element) {
 /** @type {(element: Element) => void} */
 function processPlaylistVideoRenderer(renderer) {
   isolateEvents(renderer);
-  // TODO: remove URL params from any relevant attributes - removeListParameters(element)
+  removeListParameters(renderer);
   // TODO?: something something MutationObserver?
 }
 
