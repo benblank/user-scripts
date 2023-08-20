@@ -32,11 +32,16 @@ const EVENTS_TO_ISOLATE = [
   'up',
 ];
 
-const originalAddEventListener = EventTarget.prototype.addEventListener;
-const originalRemoveEventListener = EventTarget.prototype.removeEventListener;
+const appObserver = new MutationObserver(handleAppMutations);
+
+/** @type {Set<Element>} */
+const isolatedRenderers = new Set();
 
 /** @type {WeakMap<Element, Record<string, Set<EventListenerOrEventListenerObject>>>} */
 const knownEventHandlers = new WeakMap();
+
+const originalAddEventListener = EventTarget.prototype.addEventListener;
+const originalRemoveEventListener = EventTarget.prototype.removeEventListener;
 
 /**
  * @this {EventTarget}
@@ -45,6 +50,13 @@ const knownEventHandlers = new WeakMap();
 function addEventListenerWrapper(type, handler, options, ...rest) {
   try {
     if (handler && EVENTS_TO_ISOLATE.includes(type) && this instanceof Element) {
+      if (isIsolated(this)) {
+        // Refuse to add new listeners to a renderer which has already been
+        // isolated.
+
+        return;
+      }
+
       const handlers = knownEventHandlers.get(this) ?? {};
       const capture = Boolean(typeof options === 'object' ? options.capture : options);
       const key = `${capture}-${type}`;
@@ -62,6 +74,73 @@ function addEventListenerWrapper(type, handler, options, ...rest) {
   }
 
   originalAddEventListener.call(this, type, handler, options, ...rest);
+}
+
+/** @type {MutationCallback} */
+function handleAppMutations(mutations) {
+  for (const mutation of mutations) {
+    for (const node of mutation.addedNodes) {
+      if (node instanceof Element) {
+        if (node.tagName === 'YTD-PLAYLIST-VIDEO-RENDERER') {
+          processRenderer(node);
+        } else {
+          for (const element of node.querySelectorAll('ytd-playlist-video-renderer')) {
+            processRenderer(element);
+          }
+        }
+      }
+    }
+  }
+}
+
+/** @type {(event: Event) => void} */
+function handleIsolatedEvent(event) {
+  console.log(event);
+  event.preventDefault();
+  event.stopPropagation();
+}
+
+/** @type {(element: Element) => boolean } */
+function isIsolated(element) {
+  /** @type {Element | null} */
+  let current = element;
+
+  while (current) {
+    if (isolatedRenderers.has(current)) {
+      return true;
+    }
+
+    current = current.parentElement;
+  }
+
+  return false;
+}
+
+/** @type {(element: Element) => void} */
+function isolateEvents(element) {
+  console.info('isolating events for', element);
+
+  removeEventHandlers(element);
+
+  console.info('adding isolated event handlers to', element);
+
+  for (const type of EVENTS_TO_ISOLATE) {
+    element.addEventListener(type, handleIsolatedEvent);
+  }
+}
+
+/** @type {(element: Element) => void} */
+function processRenderer(renderer) {
+  if (isolatedRenderers.has(renderer)) {
+    return;
+  }
+
+  console.info('processing renderer', renderer);
+
+  isolatedRenderers.add(renderer);
+  isolateEvents(renderer);
+  removeListParameters(renderer);
+  // TODO?: something something MutationObserver?
 }
 
 /**
@@ -90,9 +169,6 @@ function removeEventListenerWrapper(type, handler, options, ...rest) {
   originalRemoveEventListener.call(this, type, handler, options, ...rest);
 }
 
-EventTarget.prototype.addEventListener = addEventListenerWrapper;
-EventTarget.prototype.removeEventListener = removeEventListenerWrapper;
-
 /** Remove YouTube's playlist parameters from a node's href= attribute.
  *
  * Removes the list= and index= parameters from href= attributes which point to
@@ -101,8 +177,8 @@ EventTarget.prototype.removeEventListener = removeEventListenerWrapper;
  * If the element doesn't have an href= attribute (or the href= attribute
  * doesn't point at the /watch page), it is not affected.
  *
- * @param {Element} element The node from which to remove the parameters, if they
- * exist.
+ * @param {Element} element The element from which to remove the parameters, if
+ * they exist.
  */
 function removeListParameters(element) {
   try {
@@ -131,59 +207,14 @@ function removeListParameters(element) {
   }
 }
 
-// observeHref(
-//   new MutationObserver((mutations, observer) => {
-//     // Disconnect the observer so that it won't observe the changes this script
-//     // makes to href= attributes.
-//     observer.disconnect();
-
-//     for (const mutation of mutations) {
-//       switch (mutation.type) {
-//         case 'attributes':
-//           removeListParameters(mutation.target);
-
-//           break;
-
-//         case 'childList':
-//           mutation.addedNodes.forEach(removeListParameters);
-
-//           break;
-//       }
-//     }
-
-//     observeHref(observer);
-//   }),
-// );
-
-/** @type {MutationCallback} */
-function handleAppMutations(mutations) {
-  for (const mutation of mutations) {
-    for (const node of mutation.addedNodes) {
-      if (node instanceof Element) {
-        if (node.tagName === 'YTD-PLAYLIST-VIDEO-RENDERER') {
-          processPlaylistVideoRenderer(node);
-        } else {
-          for (const element of node.querySelectorAll('ytd-playlist-video-renderer')) {
-            processPlaylistVideoRenderer(element);
-          }
-        }
-      }
-    }
-  }
-}
-
-/** @type {(element: Element) => void} */
-function isolateEvents(element) {
-  removeEventHandlers(element);
-  // TODO: add stopPropagation handlers for relevant events
-}
-
 /** @type {(element: Element) => void} */
 function removeEventHandlers(element) {
   for (const [key, handlers] of Object.entries(knownEventHandlers.get(element) ?? {})) {
     const keyParts = key.split('-', 2);
     const capture = keyParts[0] === 'true';
     const type = keyParts[1];
+
+    console.info(`removing ${handlers.size} ${key} event handlers from`, element);
 
     for (const handler of handlers) {
       element.removeEventListener(type, handler, { capture });
@@ -195,25 +226,19 @@ function removeEventHandlers(element) {
   }
 }
 
-/** @type {(element: Element) => void} */
-function processPlaylistVideoRenderer(renderer) {
-  isolateEvents(renderer);
-  removeListParameters(renderer);
-  // TODO?: something something MutationObserver?
-}
+EventTarget.prototype.addEventListener = addEventListenerWrapper;
+EventTarget.prototype.removeEventListener = removeEventListenerWrapper;
 
-function watchForPlaylistVideoRenderers() {
-  const apps = document.getElementsByTagName('ytd-app');
+document.addEventListener(
+  'DOMContentLoaded',
+  () => {
+    for (const app of document.getElementsByTagName('ytd-app')) {
+      appObserver.observe(app, { childList: true, subtree: true });
 
-  if (apps.length !== 1) {
-    console.warn(`Expected exactly one "ytd-app" element, but found ${apps.length}.`);
-  }
-
-  const appObserver = new MutationObserver(handleAppMutations);
-
-  for (const app of apps) {
-    appObserver.observe(app, { childList: true, subtree: true });
-  }
-}
-
-watchForPlaylistVideoRenderers();
+      for (const renderer of app.getElementsByTagName('ytd-playlist-video-renderer')) {
+        processRenderer(renderer);
+      }
+    }
+  },
+  { once: true },
+);
