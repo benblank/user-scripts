@@ -1,4 +1,4 @@
-## Toggleable Spoilers for Steam Community Guides
+## Steam Community: Toggleable spoilers in guides
 
 I recently found myself wanting to reveal multiple spoilers in a Steam Community
 guide, but *without* just revealing them all. That can be done a couple of

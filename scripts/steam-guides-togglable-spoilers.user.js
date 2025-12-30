@@ -1,5 +1,5 @@
 // ==UserScript==
-// @name        Toggleable Spoilers for Steam Community Guides
+// @name        Steam Community: Toggleable spoilers in guides
 // @namespace   https://benblank.github.io/user-scripts/
 // @version     1.0.0
 // @author      Ben "535" Blank
