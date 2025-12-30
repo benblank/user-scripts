@@ -15,6 +15,8 @@ You can install these user scripts from any of the three places listed below.
   - [Unread count in title](scripts/feedly-unread-count-in-title.md)
 - [Girl Genius Online](https://www.girlgeniusonline.com/)
   - [Wiki links for each page](scripts/ggo-wikilinks.md)
+- [Steam Community](https://steamcommunity.com/)
+  - [Toggleable spoilers in guides](scripts/steam-guides-togglable-spoilers.md)
 - [YouTube](https://youtube.com/)
   - [Watched badge](scripts/youtube-watched-badge.md)
 
