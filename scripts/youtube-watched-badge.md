@@ -10,23 +10,23 @@ This script brings them back, with customization for when they appear.
 
 ### Settings
 
-- **Mark videos as watched based on…**
+* **Mark videos as watched based on…**
 
   You can choose to mark a video as watched based on what percentage of the
   video you've watched, how much unwatched time remains at the end of the video,
   or both (the default). See the below settings to control what percentage and
   time remaining are used.
 
-  Note that when using "Both", a badge will be added if _either_ the percentage
+  Note that when using "Both", a badge will be added if *either* the percentage
   or time remaining checks would add a badge.
 
-- **Add a badge if the percent watched is at least…**
+* **Add a badge if the percent watched is at least…**
 
   When adding badges based on percentage watched, this is the threshold used
   (80%, by default). If you've watched at least this much of the video, a badge
   will be added.
 
-- **Add a badge if the time remaining is less than…**
+* **Add a badge if the time remaining is less than…**
 
   When adding badges based on time remaining, this is the threshold used (one
   and a half minutes, by default). If no more than this amount of time remains
@@ -36,7 +36,7 @@ This script brings them back, with customization for when they appear.
   the time remaining you have set, a badge will never be added based on time
   remaining.
 
-- **Add a badge even to thumbnails which would normally hide it**
+* **Add a badge even to thumbnails which would normally hide it**
 
   In some views (such as playlists), the thumbnails are small enough that
   YouTube hides the watched badge, even if it would otherwise be shown. When
@@ -47,7 +47,7 @@ This script brings them back, with customization for when they appear.
 
 ### Troubleshooting
 
-- _The badge doesn't show up on the video I've watched most recently._
+* *The badge doesn't show up on the video I've watched most recently.*
 
   YouTube has a lot of moving parts, and they don't always talk to each other
   quickly. Often, after you leave a video, the progress bar that YouTube
@@ -57,10 +57,10 @@ This script brings them back, with customization for when they appear.
 
   One possible solution to this is to reduce the "Add a badge if the percent
   watched is greater than…" setting. YouTube generally knows that you watched
-  _some_ of a video immediately after you close it, even if the latest value
+  *some* of a video immediately after you close it, even if the latest value
   isn't available.
 
-- _The badge never appears on any video._
+* *The badge never appears on any video.*
 
   You may have your settings set up in such a way that no videos are triggering
   the badges. To fix this, open the script's settings (your user script

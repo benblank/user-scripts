@@ -72,7 +72,7 @@ GM_config field.
 The range type supports the following settings in addition to those common to
 all types:
 
-- `min`, `max`, and `step`
+* `min`, `max`, and `step`
 
   These have the same meaning as for [the `<range>` element][mdn-range] and are
   passed directly to it as attributes.
@@ -80,25 +80,25 @@ all types:
   The `list` attribute is not currently supported by this custom type, due to
   limited browser support.
 
-- `unitLabels`
+* `unitLabels`
 
   In addition to the range slider itself, the range type also adds text
   indicating its current value. The `unitLabels` setting allows you to customize
   this text by labelling it with the units your field represents. There are
   three ways of using it:
 
-  - falsy (e.g. unspecified, `false`, the empty string, etc.)
+  * falsy (e.g. unspecified, `false`, the empty string, etc.)
 
     No unit label will be applied at all; only the bare, numeric value will be
     shown.
 
-  - a string
+  * a string
 
     If `unitLabels` is a single string, it will be directly appended to the
     current value (without a space). This is handy for e.g. percentages, where
     you can simply set it to `"%"`.
 
-  - an array of two strings
+  * an array of two strings
 
     If `unitLabels` is an array of two strings, the first will be used when the
     value is exactly one, and the second will be used for all other values. This
@@ -106,7 +106,7 @@ all types:
     of seconds, you can set it to `[' second', ' seconds']` (note the space at
     the beginning of each string).
 
-- `formatter`
+* `formatter`
 
   A more flexible alternative to `unitLabels`. If provided, this function will
   be called with the field's current value and settings when adding the current
