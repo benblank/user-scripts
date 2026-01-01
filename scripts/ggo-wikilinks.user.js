@@ -179,30 +179,30 @@ const volumePattern = /^---volume (?<volume>\S+)(?: \(act (?<act>\S+): book (?<b
 function addWikiLink() {
   const date = getDate();
 
-  if (!date) throw 'Could not get date from URL.';
+  if (!date) throw "Could not get date from URL.";
 
   const wikiUrl = buildWikiUrl(getVolumeText(), date);
-  const topnav = document.getElementById('topnav');
-  const bottomnav = document.getElementById('bottomnav');
+  const topnav = document.getElementById("topnav");
+  const bottomnav = document.getElementById("bottomnav");
 
-  if (!topnav && !bottomnav) throw 'Could not find navigation controls.';
+  if (!topnav && !bottomnav) throw "Could not find navigation controls.";
 
-  const image = document.createElement('img');
+  const image = document.createElement("img");
 
   image.src = linkImage;
-  image.style.display = 'block';
+  image.style.display = "block";
 
-  const toplink = document.createElement('a');
+  const toplink = document.createElement("a");
 
   toplink.href = wikiUrl;
-  toplink.style.display = 'block';
-  toplink.style.position = 'absolute';
+  toplink.style.display = "block";
+  toplink.style.position = "absolute";
 
   toplink.append(image);
 
   if (topnav) {
-    toplink.style.left = '377px';
-    toplink.style.top = '-15px';
+    toplink.style.left = "377px";
+    toplink.style.top = "-15px";
 
     topnav.append(toplink);
   }
@@ -212,8 +212,8 @@ function addWikiLink() {
     // @ts-expect-error -- A cloned node is of the same type as the original.
     const bottomlink = toplink.cloneNode(true);
 
-    bottomlink.style.left = '380px';
-    bottomlink.style.top = '9px';
+    bottomlink.style.left = "380px";
+    bottomlink.style.top = "9px";
 
     bottomnav.append(bottomlink);
   }
@@ -229,9 +229,9 @@ function buildWikiUrl(/** @type {string} */ volumeText, /** @type {string} */ da
   // @ts-expect-error -- The pattern has named groups, so `.groups` will exist.
   const groups = match.groups;
 
-  const volume = parseVolumeNumber(groups['volume']);
-  const act = groups['act'] ? parseVolumeNumber(groups['act']) : null;
-  const book = groups['book'] ? parseVolumeNumber(groups['book']) : null;
+  const volume = parseVolumeNumber(groups["volume"]);
+  const act = groups["act"] ? parseVolumeNumber(groups["act"]) : null;
+  const book = groups["book"] ? parseVolumeNumber(groups["book"]) : null;
   const page = act && book ? `${act}-${book}` : romanNumerals[volume];
 
   return `https://girlgenius.fandom.com/wiki/Chronology_-_Volume_${page}#${date}`;
@@ -239,17 +239,17 @@ function buildWikiUrl(/** @type {string} */ volumeText, /** @type {string} */ da
 
 /** @returns { string } */
 function getDate() {
-  const urlDate = new URL(document.location.href).searchParams.get('date');
+  const urlDate = new URL(document.location.href).searchParams.get("date");
 
   if (urlDate) return urlDate;
 
-  const link = document.getElementById('savebookmark');
+  const link = document.getElementById("savebookmark");
 
-  if (!link) throw 'Could not find bookmark link.';
+  if (!link) throw "Could not find bookmark link.";
 
-  const href = link.getAttribute('href');
+  const href = link.getAttribute("href");
 
-  if (!href) throw 'No href on bookmark link.';
+  if (!href) throw "No href on bookmark link.";
 
   const match = /setPage\((\d{8})\)/.exec(href);
 
@@ -260,14 +260,14 @@ function getDate() {
 
 /** @returns { string } */
 function getVolumeText() {
-  let current = document.querySelector('#storylines option[selected]');
+  let current = document.querySelector("#storylines option[selected]");
 
-  if (!current) throw 'Could not find the current storyline.';
+  if (!current) throw "Could not find the current storyline.";
 
   while (current) {
     const text = current.textContent?.toLocaleLowerCase();
 
-    if (text?.startsWith('---volume')) {
+    if (text?.startsWith("---volume")) {
       return text;
     }
 
@@ -293,8 +293,8 @@ function parseVolumeNumber(/** @type {string} */ volume) {
 try {
   addWikiLink();
 } catch (/** @type {unknown} */ error) {
-  if (typeof error === 'string') {
-    console.warn('[ggo-wikilinks]', error);
+  if (typeof error === "string") {
+    console.warn("[ggo-wikilinks]", error);
   } else {
     throw error;
   }

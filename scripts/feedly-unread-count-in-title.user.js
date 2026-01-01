@@ -20,16 +20,16 @@
 
 /* globals GM_config, GM_config_range_type */
 
-const ALL_TITLE = 'All';
-const CURRENT_ROW_SELECTOR = '.LeftnavListRow--selected';
-const FEED_LIST_SELECTOR = '.LeftnavList__feed-list';
+const ALL_TITLE = "All";
+const CURRENT_ROW_SELECTOR = ".LeftnavListRow--selected";
+const FEED_LIST_SELECTOR = ".LeftnavList__feed-list";
 const MS_PER_MINUTE = 60 * 1000;
-const ROOT_ID = 'root';
-const ROW_COUNT_SELECTOR = '.LeftnavListRow__count';
-const ROW_SELECTOR = '.LeftnavListRow';
+const ROOT_ID = "root";
+const ROW_COUNT_SELECTOR = ".LeftnavListRow__count";
+const ROW_SELECTOR = ".LeftnavListRow";
 const TITLE_UNREAD_COUNT_PATTERN = /^\(\*?\d+\) | \(\*?\d+\)$/;
 
-GM_registerMenuCommand('Configure unread count in title', () => GM_config.open());
+GM_registerMenuCommand("Configure unread count in title", () => GM_config.open());
 
 /** Get the ID of the feed or category which should be counted.
  *
@@ -45,7 +45,7 @@ GM_registerMenuCommand('Configure unread count in title', () => GM_config.open()
 function getFeedId(feedList, countAll) {
   // If we're counting everything, return the ID for the "All" category.
   if (countAll) {
-    return `user/${getSessionValue('feedlyId')}/category/global.all`;
+    return `user/${getSessionValue("feedlyId")}/category/global.all`;
   }
 
   const selected = feedList.querySelector(CURRENT_ROW_SELECTOR);
@@ -53,12 +53,12 @@ function getFeedId(feedList, countAll) {
   // The "All" category, which is identified by its title, doesn't store its ID
   // in the DOM.
   if (selected?.title === ALL_TITLE) {
-    return `user/${getSessionValue('feedlyId')}/category/global.all`;
+    return `user/${getSessionValue("feedlyId")}/category/global.all`;
   }
 
   // Other categories' IDs can be most easily obtained from their great-
   // grandparents' "id" attributes.
-  const ggParentId = selected?.parentNode?.parentNode?.parentNode?.getAttribute('id');
+  const ggParentId = selected?.parentNode?.parentNode?.parentNode?.getAttribute("id");
 
   if (ggParentId) {
     return ggParentId;
@@ -88,7 +88,7 @@ function getFeedId(feedList, countAll) {
  * @returns {unknown} The value of the requested property, if it exists.
  */
 function getSessionValue(key) {
-  const session = localStorage.getItem('feedly.session');
+  const session = localStorage.getItem("feedly.session");
 
   try {
     return JSON.parse(session)[key];
@@ -146,7 +146,7 @@ function observeSelector(root, selector) {
     const observer = new MutationObserver((mutations) => {
       for (const mutation of mutations) {
         switch (mutation.type) {
-          case 'attributes':
+          case "attributes":
             if (mutation.target.matches(selector)) {
               observer.disconnect();
 
@@ -157,7 +157,7 @@ function observeSelector(root, selector) {
 
             break;
 
-          case 'childList':
+          case "childList":
             for (const child of mutation.addedNodes) {
               if (child.matches?.(selector)) {
                 observer.disconnect();
@@ -173,7 +173,7 @@ function observeSelector(root, selector) {
       }
     });
 
-    observer.observe(root, { attributes: true, attributeFilter: ['class', 'id'], childList: true, subtree: true });
+    observer.observe(root, { attributes: true, attributeFilter: ["class", "id"], childList: true, subtree: true });
   });
 }
 
@@ -188,10 +188,10 @@ function observeSelector(root, selector) {
  * the title instead of the end.
  */
 function setTitleCount(unreadCount, { countAll, hideWhenZero, prepend }) {
-  const existingTitleBase = document.title.replace(TITLE_UNREAD_COUNT_PATTERN, '');
+  const existingTitleBase = document.title.replace(TITLE_UNREAD_COUNT_PATTERN, "");
 
   // Count was zero, missing, or empty, all of which indicate no unread items.
-  const unreadCountIsZero = !unreadCount || unreadCount === '0';
+  const unreadCountIsZero = !unreadCount || unreadCount === "0";
 
   if (unreadCountIsZero && hideWhenZero) {
     document.title = existingTitleBase;
@@ -199,9 +199,9 @@ function setTitleCount(unreadCount, { countAll, hideWhenZero, prepend }) {
     const displayCount = unreadCountIsZero && !hideWhenZero ? 0 : unreadCount;
 
     if (prepend) {
-      document.title = `(${countAll ? '*' : ''}${displayCount}) ${existingTitleBase}`;
+      document.title = `(${countAll ? "*" : ""}${displayCount}) ${existingTitleBase}`;
     } else {
-      document.title = `${existingTitleBase} (${countAll ? '*' : ''}${displayCount})`;
+      document.title = `${existingTitleBase} (${countAll ? "*" : ""}${displayCount})`;
     }
   }
 }
@@ -229,9 +229,9 @@ observeSelector(document.getElementById(ROOT_ID), FEED_LIST_SELECTOR).then((feed
     // Passing isOpen as the second parameter ("get current value instead of
     // saved value"), plus the change listeners below, cause the title to update
     // in real time while the config is open.
-    const countAll = GM_config.get('countAll', GM_config.isOpen);
-    const hideWhenZero = GM_config.get('hideWhenZero', GM_config.isOpen);
-    const prepend = GM_config.get('prepend', GM_config.isOpen);
+    const countAll = GM_config.get("countAll", GM_config.isOpen);
+    const hideWhenZero = GM_config.get("hideWhenZero", GM_config.isOpen);
+    const prepend = GM_config.get("prepend", GM_config.isOpen);
 
     setTitleCount(
       response
@@ -245,7 +245,7 @@ observeSelector(document.getElementById(ROOT_ID), FEED_LIST_SELECTOR).then((feed
     );
 
     observer.observe(feedList, { characterData: true, subtree: true });
-    observer.observe(document.querySelector('head title'), { childList: true });
+    observer.observe(document.querySelector("head title"), { childList: true });
     scheduleRequest();
   }
 
@@ -256,44 +256,47 @@ observeSelector(document.getElementById(ROOT_ID), FEED_LIST_SELECTOR).then((feed
   function scheduleRequest() {
     window.clearTimeout(timeout);
 
-    timeout = window.setTimeout(() => {
-      fetch(`/v3/markers/counts?autorefresh=true`, {
-        headers: { authorization: `Bearer ${getSessionValue('feedlyToken')}` },
-      })
-        .then((response) => response.json())
-        .then(onChange)
-        .catch(scheduleRequest);
-    }, GM_config.get('pollFrequency') * MS_PER_MINUTE);
+    timeout = window.setTimeout(
+      () => {
+        fetch(`/v3/markers/counts?autorefresh=true`, {
+          headers: { authorization: `Bearer ${getSessionValue("feedlyToken")}` },
+        })
+          .then((response) => response.json())
+          .then(onChange)
+          .catch(scheduleRequest);
+      },
+      GM_config.get("pollFrequency") * MS_PER_MINUTE,
+    );
   }
 
   GM_config.init({
-    id: 'unreadCountInTitle',
+    id: "unreadCountInTitle",
     title: "'Unread count in title' settings",
 
     fields: {
       countAll: {
-        label: 'Show count of all unread items, not just items in the selected category',
-        type: 'checkbox',
+        label: "Show count of all unread items, not just items in the selected category",
+        type: "checkbox",
       },
 
       hideWhenZero: {
-        label: 'Hide the count when there are no unread items',
-        type: 'checkbox',
+        label: "Hide the count when there are no unread items",
+        type: "checkbox",
         default: true,
       },
 
       pollFrequency: {
-        label: 'Check for unread items every…',
-        type: 'range',
+        label: "Check for unread items every…",
+        type: "range",
         default: 5,
         min: 1,
         max: 60,
-        unitLabels: [' min', ' mins'],
+        unitLabels: [" min", " mins"],
       },
 
       prepend: {
-        label: 'Show unread count at the beginning of the title instead of the end',
-        type: 'checkbox',
+        label: "Show unread count at the beginning of the title instead of the end",
+        type: "checkbox",
       },
     },
 
@@ -308,10 +311,10 @@ observeSelector(document.getElementById(ROOT_ID), FEED_LIST_SELECTOR).then((feed
       close: () => onChange(),
 
       open: () => {
-        GM_config.fields.countAll.node.addEventListener('change', () => onChange());
+        GM_config.fields.countAll.node.addEventListener("change", () => onChange());
         // No listener for pollFrequency, as its value doesn't affect display.
-        GM_config.fields.prepend.node.addEventListener('change', () => onChange());
-        GM_config.fields.hideWhenZero.node.addEventListener('change', () => onChange());
+        GM_config.fields.prepend.node.addEventListener("change", () => onChange());
+        GM_config.fields.hideWhenZero.node.addEventListener("change", () => onChange());
       },
 
       save: () => onChange(),

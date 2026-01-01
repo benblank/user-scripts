@@ -48,27 +48,27 @@ const SECONDS_PER_HOUR = 60 * 60;
 const SECONDS_PER_MINUTE = 60;
 
 // This is YouTube's built-in watched badge, and may be present on some views.
-const YOUTUBE_BADGE_SELECTOR = 'ytd-thumbnail-overlay-playback-status-renderer';
+const YOUTUBE_BADGE_SELECTOR = "ytd-thumbnail-overlay-playback-status-renderer";
 
-const YOUTUBE_TIME_SELECTOR = 'ytd-thumbnail-overlay-time-status-renderer';
+const YOUTUBE_TIME_SELECTOR = "ytd-thumbnail-overlay-time-status-renderer";
 
-const VALUE_BOTH = 'Both';
-const VALUE_PERCENT = 'Percentage viewed';
-const VALUE_TIME = 'Time Remaining';
+const VALUE_BOTH = "Both";
+const VALUE_PERCENT = "Percentage viewed";
+const VALUE_TIME = "Time Remaining";
 const VALUES_PERCENT = new Set([VALUE_BOTH, VALUE_PERCENT]);
 const VALUES_TIME = new Set([VALUE_BOTH, VALUE_TIME]);
 
 const INTERPRET_AS_ATTRIBUTES = new Set([
-  'accesskey',
-  'class',
-  'for',
-  'href',
-  'id',
-  'name',
-  'src',
-  'style',
-  'type',
-  'value',
+  "accesskey",
+  "class",
+  "for",
+  "href",
+  "id",
+  "name",
+  "src",
+  "style",
+  "type",
+  "value",
 ]);
 
 function createElement(tagName, attributes = {}, children = []) {
@@ -85,7 +85,7 @@ function createElement(tagName, attributes = {}, children = []) {
   }
 
   function appendChild(child) {
-    if (typeof child === 'string') {
+    if (typeof child === "string") {
       element.appendChild(document.createTextNode(child));
     } else if (child instanceof Node) {
       element.appendChild(child);
@@ -107,7 +107,7 @@ function createElement(tagName, attributes = {}, children = []) {
   return element;
 }
 
-GM_registerMenuCommand('Configure watched badge', () => GM_config.open());
+GM_registerMenuCommand("Configure watched badge", () => GM_config.open());
 
 function debounce(fn) {
   return () => {
@@ -122,7 +122,7 @@ function parseTime(text) {
     return NaN;
   }
 
-  const segments = text.split(':');
+  const segments = text.split(":");
 
   if (segments.length > 2) {
     // YouTube doesn't format times with more than three segments.
@@ -137,11 +137,11 @@ function parseTime(text) {
 }
 
 function setBadge(thumbnail) {
-  const progress = thumbnail.querySelector('#progress');
+  const progress = thumbnail.querySelector("#progress");
   const time = thumbnail.querySelector(YOUTUBE_TIME_SELECTOR);
-  const basis = GM_config.get('basis');
-  const percentWatchedLimit = GM_config.get('percentWatched');
-  const timeRemainingLimit = GM_config.get('timeRemaining');
+  const basis = GM_config.get("basis");
+  const percentWatchedLimit = GM_config.get("percentWatched");
+  const timeRemainingLimit = GM_config.get("timeRemaining");
 
   // If the progress bar is absent, parseFloat will return NaN, which always
   // compares false.
@@ -157,35 +157,35 @@ function setBadge(thumbnail) {
     (VALUES_PERCENT.has(basis) && percentWatched >= percentWatchedLimit) ||
     (VALUES_TIME.has(basis) && !isShortVideo && timeRemaining <= timeRemainingLimit);
 
-  const badge = thumbnail.querySelector(YOUTUBE_BADGE_SELECTOR) ?? thumbnail.querySelector('.ytwb-badge');
-  const img = thumbnail.querySelector('yt-image');
-  const hidingPlaybackStatus = thumbnail.hasAttribute('hide-playback-status');
+  const badge = thumbnail.querySelector(YOUTUBE_BADGE_SELECTOR) ?? thumbnail.querySelector(".ytwb-badge");
+  const img = thumbnail.querySelector("yt-image");
+  const hidingPlaybackStatus = thumbnail.hasAttribute("hide-playback-status");
 
-  if (shouldBeBadged && (!hidingPlaybackStatus || GM_config.get('unhide'))) {
+  if (shouldBeBadged && (!hidingPlaybackStatus || GM_config.get("unhide"))) {
     if (img) {
       img.style.opacity = 0.5;
     }
 
-    const badgeText = hidingPlaybackStatus ? 'W' : 'WATCHED';
+    const badgeText = hidingPlaybackStatus ? "W" : "WATCHED";
 
     if (badge) {
       if (hidingPlaybackStatus) {
         // An existing badge only needs tweaked if the thumbnail is trying to
         // hide it.
 
-        const formattedString = badge.querySelector('yt-formatted-string');
+        const formattedString = badge.querySelector("yt-formatted-string");
 
         if (formattedString) {
           formattedString.textContent = badgeText;
-          badge.style.display = 'revert';
+          badge.style.display = "revert";
         }
       }
     } else {
-      thumbnail.querySelector('#overlays')?.appendChild(createElement('span', { class: 'ytwb-badge' }, badgeText));
+      thumbnail.querySelector("#overlays")?.appendChild(createElement("span", { class: "ytwb-badge" }, badgeText));
     }
   } else {
     if (img) {
-      img.style.removeProperty('opacity');
+      img.style.removeProperty("opacity");
     }
 
     if (badge) {
@@ -194,25 +194,25 @@ function setBadge(thumbnail) {
   }
 }
 
-document.head.appendChild(createElement('style', undefined, BADGE_CSS));
+document.head.appendChild(createElement("style", undefined, BADGE_CSS));
 
-const setBadges = debounce(() => Array.from(document.querySelectorAll('ytd-thumbnail') ?? []).forEach(setBadge));
+const setBadges = debounce(() => Array.from(document.querySelectorAll("ytd-thumbnail") ?? []).forEach(setBadge));
 
 // These events are overly broad, but YouTube no longer produces a narrower,
 // more appropriate event. (That I know of.)
-document.addEventListener('dom-change', setBadges);
-document.addEventListener('yt-action', setBadges);
+document.addEventListener("dom-change", setBadges);
+document.addEventListener("yt-action", setBadges);
 
 GM_config.init({
-  id: 'watchedBadge',
+  id: "watchedBadge",
   title: "'Watched badge' settings",
 
   fields: {
     basis: {
-      label: 'Mark videos as watched based on…',
-      type: 'select',
+      label: "Mark videos as watched based on…",
+      type: "select",
       options: [VALUE_PERCENT, VALUE_TIME, VALUE_BOTH],
-      default: 'Both',
+      default: "Both",
     },
 
     // The video's play percentage is extracted from the thumbnail's progress
@@ -220,17 +220,17 @@ GM_config.init({
     // using the percentage unit, this field uses the same, to avoid needing to
     // convert the value.
     percentWatched: {
-      label: 'Add a badge if the percent watched is at least…',
-      type: 'range',
+      label: "Add a badge if the percent watched is at least…",
+      type: "range",
       default: 80,
       min: 0,
       max: 100,
-      unitLabels: '%',
+      unitLabels: "%",
     },
 
     timeRemaining: {
-      label: 'Add a badge if the time remaining is less than…',
-      type: 'range',
+      label: "Add a badge if the time remaining is less than…",
+      type: "range",
       default: 90,
       min: 0,
       max: SECONDS_PER_HOUR,
@@ -247,13 +247,13 @@ GM_config.init({
         segments.push(Math.trunc(remaining / SECONDS_PER_MINUTE));
         segments.push(remaining % SECONDS_PER_MINUTE);
 
-        return segments.map((segment, index) => (index !== 0 && segment < 10 ? `0${segment}` : segment)).join(':');
+        return segments.map((segment, index) => (index !== 0 && segment < 10 ? `0${segment}` : segment)).join(":");
       },
     },
 
     unhide: {
-      label: 'Add a badge even to thumbnails which would normally hide it',
-      type: 'checkbox',
+      label: "Add a badge even to thumbnails which would normally hide it",
+      type: "checkbox",
       default: true,
     },
   },

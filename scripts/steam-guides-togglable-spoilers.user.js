@@ -34,8 +34,8 @@
  * been disabled.
  */
 
-const ENABLED_SPOILER = 'bb_spoiler';
-const DISABLED_SPOILER = 'disabled-spoiler';
+const ENABLED_SPOILER = "bb_spoiler";
+const DISABLED_SPOILER = "disabled-spoiler";
 
 const styles = `
 .${ENABLED_SPOILER} {
@@ -99,7 +99,7 @@ const enableSpoiler = (/** @type {HTMLElement} */ spoiler) => {
 /** @type {() => FileInfo | null} */
 const getFileInfo = () => {
   // The unique identifier for this guide.
-  const id = new URL(document.location.toString()).searchParams.get('id');
+  const id = new URL(document.location.toString()).searchParams.get("id");
 
   // There's no reasonable way to store data if we don't know what document to
   // associate it with.
@@ -109,10 +109,10 @@ const getFileInfo = () => {
 
   let updated;
 
-  container_loop: for (const container of document.querySelectorAll('.rightDetailsBlock')) {
-    for (const [index, header] of container.querySelectorAll('.detailsStatLeft').entries()) {
-      if (header.textContent.trim() === 'Updated') {
-        updated = container.querySelectorAll('.detailsStatRight')[index].textContent.trim();
+  container_loop: for (const container of document.querySelectorAll(".rightDetailsBlock")) {
+    for (const [index, header] of container.querySelectorAll(".detailsStatLeft").entries()) {
+      if (header.textContent.trim() === "Updated") {
+        updated = container.querySelectorAll(".detailsStatRight")[index].textContent.trim();
 
         break container_loop;
       }
@@ -151,13 +151,13 @@ const getToggledSpoilers = (fileInfo) => {
 };
 
 const initialize = (/** @type {FileInfo} */ fileInfo) => {
-  const stylesheet = document.createElement('style');
+  const stylesheet = document.createElement("style");
 
   stylesheet.textContent = styles;
   document.head.appendChild(stylesheet);
 
   /** @type {NodeListOf<HTMLElement>} */
-  const allSpoilers = document.querySelectorAll('.bb_spoiler');
+  const allSpoilers = document.querySelectorAll(".bb_spoiler");
   const toggledSpoilers = getToggledSpoilers(fileInfo);
   const clickHandler = createClickHandler(fileInfo);
 
@@ -170,7 +170,7 @@ const initialize = (/** @type {FileInfo} */ fileInfo) => {
       disableSpoiler(spoiler);
     }
 
-    spoiler.addEventListener('click', clickHandler);
+    spoiler.addEventListener("click", clickHandler);
   }
 };
 

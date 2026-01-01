@@ -78,15 +78,15 @@
     },
 
     toNode() {
-      const container = this.create('div', {
-        className: 'config_var',
+      const container = this.create("div", {
+        className: "config_var",
         id: `${this.configId}_${this.id}_var`,
-        title: this.title || '',
+        title: this.title || "",
       });
 
       container.appendChild(
-        this.create('label', {
-          className: 'field_label',
+        this.create("label", {
+          className: "field_label",
           for: `${this.configId}_field_${this.id}`,
           id: `${this.configId}_${this.id}_field_label`,
           innerHTML: this.settings.label,
@@ -94,10 +94,10 @@
       );
 
       container.appendChild(
-        (this.node = this.create('input', {
+        (this.node = this.create("input", {
           id: `${this.configId}_field_${this.id}`,
-          type: 'range',
-          ...pick(this.settings, ['min', 'max', 'step']),
+          type: "range",
+          ...pick(this.settings, ["min", "max", "step"]),
           value: this.value,
         })),
       );
@@ -105,7 +105,7 @@
       const formatter = this.settings.formatter ?? defaultFormatter;
 
       container.appendChild(
-        (this.currentValue = this.create('span', {
+        (this.currentValue = this.create("span", {
           className: `${this.configId}_${this.id}_current_value`,
           innerHTML: formatter(this.value, this.settings),
         })),
@@ -120,7 +120,7 @@
         }
       };
 
-      this.node.addEventListener('input', this.updateCurrentValue.bind(this), { passive: true });
+      this.node.addEventListener("input", this.updateCurrentValue.bind(this), { passive: true });
 
       return container;
     },
