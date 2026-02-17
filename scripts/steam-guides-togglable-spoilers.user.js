@@ -6,6 +6,7 @@
 // @description Click on a spoiler to unhide or rehide it. Remembered between visits!
 // @homepageURL https://benblank.github.io/user-scripts/scripts/steam-guides-toggleable-spoilers.html
 // @supportURL  https://github.com/benblank/user-scripts/issues
+// @icon        https://benblank.github.io/user-scripts/icon.png
 // @license     BSD-3-Clause
 // @copyright   2025 Ben Blank
 // @match       https://steamcommunity.com/sharedfiles/filedetails/*

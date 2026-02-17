@@ -6,6 +6,7 @@
 // @description Adds a link to the current page's wiki entry to the top and bottom navigation.
 // @homepageURL https://benblank.github.io/user-scripts/scripts/ggo-wikilinks.html
 // @supportURL  https://github.com/benblank/user-scripts/issues
+// @icon        https://benblank.github.io/user-scripts/icon.png
 // @license     BSD-3-Clause
 // @copyright   2025 Ben Blank
 // @match       https://www.girlgeniusonline.com/*
